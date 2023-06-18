@@ -1,4 +1,5 @@
 using ErrorOr;
+using InvBank.Backend.Application.Common.Contracts;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Contracts.Report;
@@ -9,27 +10,33 @@ namespace InvBank.Backend.Application.Services;
 
 public class ReportService
 {
+    private readonly IDateFormatter _dateFormatter;
     private readonly IAuthorizationFacade _authorizationFacade;
     private readonly IFundRepository _fundRepository;
     private readonly IDepositRepository _depositRepository;
     private readonly IPropertyAccountRepository _propertyAccountRepository;
     private readonly IAccountRepository _accountRepository;
+    private readonly IBankRepository _bankRepository;
 
     public ReportService(
         IDepositRepository depositRepository,
         IPropertyAccountRepository propertyAccountRepository,
         IFundRepository fundRepository,
         IAuthorizationFacade authorizationFacade,
-        IAccountRepository accountRepository)
+        IAccountRepository accountRepository,
+        IDateFormatter dateFormatter,
+        IBankRepository bankRepository)
     {
         _depositRepository = depositRepository;
         _propertyAccountRepository = propertyAccountRepository;
         _fundRepository = fundRepository;
         _authorizationFacade = authorizationFacade;
         _accountRepository = accountRepository;
+        _dateFormatter = dateFormatter;
+        _bankRepository = bankRepository;
     }
 
-    public async Task<ErrorOr<IEnumerable<PaymentDeposit>>> GenerateReportPay(CreatePayReportCommand request)
+    public async Task<ErrorOr<PayReportResult>> GenerateReportPay(CreatePayReportCommand request)
     {
 
         Auth auth = await _authorizationFacade.GetAuthenticatedUser();
@@ -41,10 +48,17 @@ public class ReportService
             return Errors.Account.AccountNotFound;
         }
 
-        IEnumerable<PaymentDeposit> payments = await _depositRepository.GetPayments(account.Iban);
-        payments = payments.Where(pay => pay.PaymentDate >= request.InitialDate && pay.PaymentDate <= request.EndDate);
+        IEnumerable<PaymentDeposit> paymentsDeposit = await _depositRepository.GetPayments(account.Iban);
+        paymentsDeposit = paymentsDeposit.Where(pay => pay.PaymentDate >= request.InitialDate && pay.PaymentDate <= request.EndDate);
 
-        return payments.ToList();
+        IEnumerable<PaymentProperty> paymentsProperty = await _propertyAccountRepository.GetPayments(account.Iban);
+        paymentsProperty = paymentsProperty.Where(pay => pay.PaymentDate >= request.InitialDate && pay.PaymentDate <= request.EndDate);
+
+        return new PayReportResult
+        (
+            paymentsDeposit,
+            paymentsProperty
+        );
 
     }
 

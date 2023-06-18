@@ -1,4 +1,3 @@
-using InvBank.Backend.Contracts.Deposit;
 using InvBank.Backend.Contracts.PropertyAccount;
 using InvBank.Backend.Domain.Entities;
 

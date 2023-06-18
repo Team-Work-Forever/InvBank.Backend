@@ -27,7 +27,7 @@ public class BankService
 
     public async Task<IEnumerable<Bank>> GetAllBanks()
     {
-        return await _bankRepository.GetAllBank();
+        return await _bankRepository.GetAllBanks();
     }
 
 }

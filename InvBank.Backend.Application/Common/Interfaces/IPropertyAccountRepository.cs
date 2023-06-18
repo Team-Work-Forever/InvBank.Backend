@@ -10,4 +10,5 @@ public interface IPropertyAccountRepository
     Task<int> DeleteActiveProperty(Guid Id);
     Task<IEnumerable<ActivesProperty>> GetAllPropertyAccounts(string iban);
     Task<IEnumerable<AtiveStateProperty>> GetAtives();
+    Task<IEnumerable<PaymentProperty>> GetPayments(string iban);
 }

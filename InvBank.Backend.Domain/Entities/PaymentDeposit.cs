@@ -8,9 +8,9 @@ public partial class PaymentDeposit
 
     public Guid AtiveId { get; set; }
 
-    public DateOnly? PaymentDate { get; set; }
+    public DateOnly PaymentDate { get; set; }
 
-    public decimal? Amount { get; set; }
+    public decimal Amount { get; set; }
 
     public virtual ActivesDepositAccount Ative { get; set; } = null!;
 }

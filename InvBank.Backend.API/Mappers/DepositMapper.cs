@@ -1,5 +1,8 @@
 using InvBank.Backend.Application.Actives.Deposit.CreateDeposit;
+using InvBank.Backend.Application.Common.Contracts;
 using InvBank.Backend.Contracts.Deposit;
+using InvBank.Backend.Contracts.Payment;
+using InvBank.Backend.Contracts.Report;
 using InvBank.Backend.Domain.Entities;
 
 namespace InvBank.Backend.API.Mappers;
@@ -29,6 +32,7 @@ public class DepositMapper : AutoMapper.Profile
                 acc.YearlyTax,
                 acc.IBAN
             ));
+
     }
 
 }

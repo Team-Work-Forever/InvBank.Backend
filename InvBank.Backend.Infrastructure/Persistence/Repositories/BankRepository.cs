@@ -16,7 +16,7 @@ public class BankRepository : BaseRepository, IBankRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Bank>> GetAllBank()
+    public async Task<IEnumerable<Bank>> GetAllBanks()
     {
         return await _dbContext.Banks
              .ToListAsync();

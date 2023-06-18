@@ -1,3 +1,4 @@
+using AutoMapper;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts.Report;
@@ -10,14 +11,16 @@ namespace InvBank.Backend.API.Controllers;
 [Route("report")]
 public class ReportController : ControllerBase
 {
+    private readonly IMapper _mapper;
     private readonly IDateFormatter _dateFormatter;
 
     private readonly ReportService _reportService;
 
-    public ReportController(IDateFormatter dateFormatter, ReportService reportService)
+    public ReportController(IDateFormatter dateFormatter, ReportService reportService, IMapper mapper)
     {
         _dateFormatter = dateFormatter;
         _reportService = reportService;
+        _mapper = mapper;
     }
 
     [HttpPost("profit")]
@@ -33,7 +36,7 @@ public class ReportController : ControllerBase
     }
 
     [HttpPost("pay")]
-    public async Task<ActionResult<IEnumerable<PaymentDeposit>>> GenerateReportPay([FromQuery] string iban, CreatePayReportRequest request)
+    public async Task<ActionResult<PayReportResponse>> GenerateReportPay([FromQuery] string iban, CreatePayReportRequest request)
     {
         var payReportResult = await _reportService.GenerateReportPay(
              new CreatePayReportCommand(
@@ -43,7 +46,7 @@ public class ReportController : ControllerBase
              ));
 
         return payReportResult.MatchFirst(
-            payReportResult => Ok(payReportResult),
+            payReportResult => Ok(_mapper.Map<PayReportResponse>(payReportResult)),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }

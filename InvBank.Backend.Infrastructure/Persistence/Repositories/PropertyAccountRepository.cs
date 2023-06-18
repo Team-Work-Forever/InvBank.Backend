@@ -55,6 +55,15 @@ public class PropertyAccountRepository : BaseRepository, IPropertyAccountReposit
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<PaymentProperty>> GetPayments(string iban)
+    {
+        return await _dbContext
+                   .PaymentProperties
+                   .Include(pay => pay.Ative)
+                   .Where(pay => pay.Ative.Account == iban)
+                   .ToListAsync();
+    }
+
     public async Task<ActivesProperty> UpdateActiveProperty(ActivesProperty activesProperty)
     {
         _dbContext.Update<ActivesProperty>(activesProperty);
