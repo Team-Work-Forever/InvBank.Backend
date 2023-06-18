@@ -64,4 +64,12 @@ public class DepositRepository : BaseRepository, IDepositRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<PaymentDeposit>> GetPayments(string iban)
+    {
+        return await _dbContext
+            .PaymentDeposits
+            .Include(pay => pay.Ative)
+            .Where(pay => pay.Ative.Account == iban)
+            .ToListAsync();
+    }
 }

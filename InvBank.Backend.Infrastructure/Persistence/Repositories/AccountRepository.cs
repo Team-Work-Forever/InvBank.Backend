@@ -22,6 +22,8 @@ public class AccountRepository : BaseRepository, IAccountRepository
     {
         return await _dbContext.AuthAccounts
             .Where(ac => ac.Auth == user.Id)
+            .Include(ac => ac.AccountNavigation.ActivesDepositAccounts)
+            .Include(ac => ac.AccountNavigation.ActivesProperties)
             .Select(ac => ac.AccountNavigation)
             .ToListAsync();
     }

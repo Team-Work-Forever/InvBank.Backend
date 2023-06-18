@@ -1,9 +1,12 @@
+using InvBank.Backend.Contracts.Deposit;
+using InvBank.Backend.Contracts.PropertyAccount;
+
 namespace InvBank.Backend.Contracts.Account;
 
 public record AccountResponse
 (
     string IBAN,
     string Bank,
-    IEnumerable<dynamic> deposits,
-    IEnumerable<dynamic> properties
+    IEnumerable<DepositResponse> deposits,
+    IEnumerable<PropertyAccountResponse> properties
 );

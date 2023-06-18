@@ -30,6 +30,12 @@ public partial class InvBankDbContext : DbContext
 
     public virtual DbSet<Company> Companies { get; set; } = null!;
 
+    public virtual DbSet<PaymentDeposit> PaymentDeposits { get; set; } = null!;
+
+    public virtual DbSet<PaymentInvestFund> PaymentInvestFunds { get; set; } = null!;
+
+    public virtual DbSet<PaymentProperty> PaymentProperties { get; set; } = null!;
+
     public virtual DbSet<Postalcode> Postalcodes { get; set; } = null!;
 
     public virtual DbSet<Profile> Profiles { get; set; } = null!;
@@ -234,8 +240,7 @@ public partial class InvBankDbContext : DbContext
                 .HasDefaultValueSql("true")
                 .HasColumnName("is_active");
 
-            entity.HasOne(d => d.Ative)
-                .WithMany(p => p.AtiveStateDeposits)
+            entity.HasOne(d => d.Ative).WithMany(p => p.AtiveStateDeposits)
                 .HasForeignKey(d => d.AtiveId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("ative_state_deposit_ative_id_fkey");
@@ -392,6 +397,78 @@ public partial class InvBankDbContext : DbContext
                 .HasForeignKey<Company>(d => d.Id)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("company_id_fkey");
+        });
+
+        modelBuilder.Entity<PaymentDeposit>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payment_deposit_pkey");
+
+            entity.ToTable("payment_deposit");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("amount");
+            entity.Property(e => e.AtiveId).HasColumnName("ative_id");
+            entity.Property(e => e.PaymentDate)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("payment_date");
+
+            entity.HasOne(d => d.Ative).WithMany(p => p.PaymentDeposits)
+                .HasForeignKey(d => d.AtiveId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("payment_deposit_ative_id_fkey");
+        });
+
+        modelBuilder.Entity<PaymentInvestFund>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payment_invest_fund_pkey");
+
+            entity.ToTable("payment_invest_fund");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("amount");
+            entity.Property(e => e.AtiveId).HasColumnName("ative_id");
+            entity.Property(e => e.PaymentDate)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("payment_date");
+
+            entity.HasOne(d => d.Ative).WithMany(p => p.PaymentInvestFunds)
+                .HasForeignKey(d => d.AtiveId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("payment_invest_fund_ative_id_fkey");
+        });
+
+        modelBuilder.Entity<PaymentProperty>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("payment_property_pkey");
+
+            entity.ToTable("payment_property");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
+            entity.Property(e => e.Amount)
+                .HasPrecision(14, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("amount");
+            entity.Property(e => e.AtiveId).HasColumnName("ative_id");
+            entity.Property(e => e.PaymentDate)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("payment_date");
+
+            entity.HasOne(d => d.Ative).WithMany(p => p.PaymentProperties)
+                .HasForeignKey(d => d.AtiveId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("payment_property_ative_id_fkey");
         });
 
         modelBuilder.Entity<Postalcode>(entity =>
