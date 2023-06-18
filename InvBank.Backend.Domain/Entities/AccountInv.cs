@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
+﻿
 namespace InvBank.Backend.Domain.Entities;
 
 public partial class AccountInv

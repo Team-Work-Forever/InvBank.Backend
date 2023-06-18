@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 
 namespace InvBank.Backend.Domain.Entities;
 
@@ -26,4 +25,6 @@ public partial class ActivesInvestmentFund
     public virtual ICollection<AccountInv> AccountInvs { get; set; } = new List<AccountInv>();
 
     public virtual ICollection<AtiveStateInvestmentFund> AtiveStateInvestmentFunds { get; set; } = new List<AtiveStateInvestmentFund>();
+
+    public virtual ICollection<PaymentInvestFund> PaymentInvestFunds { get; set; } = new List<PaymentInvestFund>();
 }

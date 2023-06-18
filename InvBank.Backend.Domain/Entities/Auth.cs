@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 
 namespace InvBank.Backend.Domain.Entities;
 
@@ -17,7 +16,7 @@ public partial class Auth
 
     public virtual ICollection<AuthAccount> AuthAccounts { get; set; } = new List<AuthAccount>();
 
-    public virtual Company Company { get; set; } = null!;
+    public virtual Company? Company { get; set; }
 
-    public virtual Profile Profile { get; set; } = null!;
+    public virtual Profile? Profile { get; set; }
 }

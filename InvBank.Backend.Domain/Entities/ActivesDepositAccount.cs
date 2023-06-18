@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 
 namespace InvBank.Backend.Domain.Entities;
 
@@ -27,7 +26,9 @@ public partial class ActivesDepositAccount
 
     public DateOnly? DeletedAt { get; set; }
 
-    public virtual Account AccountNavigation { get; set; } = null!;
+    public virtual Account? AccountNavigation { get; set; }
 
     public virtual ICollection<AtiveStateDeposit> AtiveStateDeposits { get; set; } = new List<AtiveStateDeposit>();
+
+    public virtual ICollection<PaymentDeposit> PaymentDeposits { get; set; } = new List<PaymentDeposit>();
 }
