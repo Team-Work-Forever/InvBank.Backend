@@ -36,6 +36,18 @@ public class FundService
         return findAccount;
     }
 
+    public async Task<ErrorOr<ActivesInvestmentFund>> GetInvFund(Guid fundId)
+    {
+        ActivesInvestmentFund? findInvFund = await _fundRepository.GetInvFundActive(fundId);
+
+        if (findInvFund is null)
+        {
+            return Errors.Fund.FundNotFound;
+        }
+
+        return findInvFund;
+    }
+
     public async Task<ErrorOr<int>> CreateFund(CreateFundRequest request)
     {
 
@@ -68,6 +80,37 @@ public class FundService
         }
 
         return (await _fundRepository.GetInvestmentFundsOfAccount(findAccount.Value.Iban)).ToList();
+    }
+
+    public async Task<ErrorOr<ActivesInvestmentFund>> UpdateFundAccount(Guid id, UpdateFundRequest request)
+    {
+
+        var findFundAccount = await GetInvFund(id);
+
+        if (findFundAccount.IsError)
+        {
+            return findFundAccount.Errors;
+        }
+
+        findFundAccount.Value.InvestName = request.Name;
+        findFundAccount.Value.Duration = request.Duration;
+        findFundAccount.Value.TaxPercent = request.TaxPercent;
+        findFundAccount.Value.InvestValue = request.Value;
+
+        return await _fundRepository.UpdateFundAccount(findFundAccount.Value);
+
+    }
+
+    public async Task<ErrorOr<int>> DeleteFundAccount(Guid id)
+    {
+        var activesProperty = await GetInvFund(id);
+
+        if (activesProperty.IsError)
+        {
+            return activesProperty.Errors;
+        }
+
+        return await _fundRepository.DeleteFund(id);
     }
 
 }

@@ -1,9 +1,7 @@
 using AutoMapper;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts.Fund;
-using InvBank.Backend.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-
 namespace InvBank.Backend.API.Controllers;
 
 [ApiController]
@@ -30,6 +28,18 @@ public class InvestFundController : ControllerBase
         );
     }
 
+    [HttpGet("all")]
+    public async Task<ActionResult<IEnumerable<dynamic>>> GetAllInvestFund([FromQuery] string accountIban)
+    {
+        var fundResult = await _fundService.GetFundsOfAccount(accountIban);
+
+        return fundResult.MatchFirst(
+            fundResult => Ok(_mapper.Map<IEnumerable<FundResponse>>(fundResult)),
+            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+        );
+    }
+
+
     [HttpGet()]
     public async Task<ActionResult<IEnumerable<FundResponse>>> GetInvestFundOfAccount([FromQuery] string iban)
     {
@@ -37,6 +47,28 @@ public class InvestFundController : ControllerBase
 
         return fundsResult.MatchFirst(
             fundsResult => Ok(_mapper.Map<IEnumerable<FundResponse>>(fundsResult)),
+            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+        );
+    }
+
+    [HttpPut("update")]
+    public async Task<ActionResult<dynamic>> UpdateInvFund([FromQuery] Guid id, [FromBody] UpdateFundRequest request)
+    {
+        var fundUpdateResult = await _fundService.UpdateFundAccount(id, request);
+
+        return fundUpdateResult.MatchFirst(
+           fundUpdate => Ok(_mapper.Map<IEnumerable<FundResponse>>(fundUpdate)),
+           firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+       );
+    }
+
+    [HttpDelete("delete")]
+    public async Task<ActionResult<string>> DeleteFundAccount([FromQuery] Guid id)
+    {
+        var fundUpdateResult = await _fundService.DeleteFundAccount(id);
+
+        return fundUpdateResult.MatchFirst(
+            fundUpdate => Ok("Foi removido o ativo fundo de investimento!"),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }

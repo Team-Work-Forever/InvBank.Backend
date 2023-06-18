@@ -5,7 +5,6 @@ using InvBank.Backend.Contracts.Deposit;
 using InvBank.Backend.Infrastructure.Authentication;
 using InvBank.Backend.Infrastructure.Providers;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvBank.Backend.API.Controllers;

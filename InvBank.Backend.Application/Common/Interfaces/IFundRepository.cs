@@ -4,7 +4,9 @@ namespace InvBank.Backend.Application.Common.Interfaces;
 
 public interface IFundRepository
 {
+    Task<ActivesInvestmentFund?> GetInvFundActive(Guid fundId);
     Task<IEnumerable<ActivesInvestmentFund>> GetInvestmentFundsOfAccount(string iban);
-    // Task<IEnumerable<AtiveStateInvestmentFund>> GetAtives(string iban);
-    Task<int> CreateFund(Account account, ActivesInvestmentFund depositAccount, decimal value);
+    Task<int> CreateFund(Account account, ActivesInvestmentFund fundAccount, decimal value);
+    Task<int> DeleteFund(Guid fundId);
+    Task<ActivesInvestmentFund> UpdateFundAccount(ActivesInvestmentFund fundAccount);
 }

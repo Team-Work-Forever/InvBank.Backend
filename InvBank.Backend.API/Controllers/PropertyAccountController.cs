@@ -71,7 +71,7 @@ public class PropertyAccountController : ControllerBase
         var propertyUpdateResult = await _propertyAccountService.DeletePropertyAccount(id);
 
         return propertyUpdateResult.MatchFirst(
-            propertyUpdate => Ok("Foi removido o ativo movél"),
+            propertyUpdate => Ok("Foi removido o ativo imovél!"),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }
