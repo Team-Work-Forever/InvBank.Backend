@@ -50,6 +50,8 @@ var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddAuth(builder.Configuration);
 
+    builder.Services.AddCors();
+
 };
 
 var app = builder.Build();
@@ -68,6 +70,8 @@ var app = builder.Build();
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
         app.Run();
     }

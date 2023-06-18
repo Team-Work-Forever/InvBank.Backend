@@ -1,6 +1,7 @@
 using AutoMapper;
 using ErrorOr;
 using InvBank.Backend.Application.Services;
+using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Account;
 using InvBank.Backend.Infrastructure.Authentication;
 using InvBank.Backend.Infrastructure.Providers;
@@ -53,13 +54,13 @@ public class AccountController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<AccountResponse>>(accounts));
     }
 
-    [HttpPut("/delete")]
-    public async Task<ActionResult<string>> DeleteAccount([FromQuery] string iban)
+    [HttpDelete("delete")]
+    public async Task<ActionResult<SimpleResponse>> DeleteAccount([FromQuery] string iban)
     {
         ErrorOr<dynamic> deleteResult = await _accountService.DeleteAccount(iban);
 
         return deleteResult.Match(
-            deleteResult => Ok("Conta Removida!"),
+            deleteResult => Ok(new SimpleResponse("Conta Removida!")),
             firstError => Problem()
         );
 
