@@ -45,7 +45,6 @@ public class PropertyAccountController : ControllerBase
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<PropertyAccountResponse>>> GetAllPropertyAccount([FromQuery] string iban)
     {
-
         var propertyAccountsResult = await _propertyAccountService.GetAllPropertyAccounts(iban);
 
         return propertyAccountsResult.MatchFirst(
@@ -56,7 +55,7 @@ public class PropertyAccountController : ControllerBase
     }
 
     [HttpPut("update")]
-    public async Task<ActionResult<dynamic>> UpdatePropertyAccount([FromQuery] Guid id, [FromBody] UpdatePropertyAccountRequest request)
+    public async Task<ActionResult<PropertyAccountResponse>> UpdatePropertyAccount([FromQuery] Guid id, [FromBody] UpdatePropertyAccountRequest request)
     {
         var propertyUpdateResult = await _propertyAccountService.UpdatePropertyAccount(id, request);
 
@@ -67,12 +66,12 @@ public class PropertyAccountController : ControllerBase
     }
 
     [HttpDelete("delete")]
-    public async Task<ActionResult<string>> DeletePropertyAccount([FromQuery] Guid id)
+    public async Task<ActionResult<SimpleResponse>> DeletePropertyAccount([FromQuery] Guid id)
     {
         var propertyUpdateResult = await _propertyAccountService.DeletePropertyAccount(id);
 
         return propertyUpdateResult.MatchFirst(
-            propertyUpdate => Ok("Foi removido o ativo movél"),
+            propertyUpdate => Ok(new SimpleResponse("Foi removido o ativo movél")),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }

@@ -10,6 +10,7 @@ public class FundMapper : AutoMapper.Profile
     {
         CreateMap<ActivesInvestmentFund, FundResponse>()
                    .ConvertUsing(acc => new FundResponse(
+                        acc.Id,
                         acc.InvestName,
                         acc.InitialDate.ToString("dd/MM/yyyy"),
                         acc.Duration,

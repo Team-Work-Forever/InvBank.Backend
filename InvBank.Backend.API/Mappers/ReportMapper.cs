@@ -21,6 +21,7 @@ public class ReportMapper : AutoMapper.Profile
                             pd.Ative.DepositName,
                             pd.Ative.InitialDate.ToString("dd/MM/yyyy"),
                             pd.Ative.Duration,
+                            pd.Ative.DepositValue,
                             pd.Ative.TaxPercent,
                             pd.Ative.YearlyTax,
                             pd.Ative.Account

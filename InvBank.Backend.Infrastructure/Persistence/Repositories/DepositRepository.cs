@@ -25,6 +25,7 @@ public class DepositRepository : BaseRepository, IDepositRepository
     {
         return await _dbContext.ActivesDepositAccounts
             .Where(act => act.Account == account.Iban)
+            .Where(act => act.DeletedAt == null)
             .ToListAsync();
     }
 
