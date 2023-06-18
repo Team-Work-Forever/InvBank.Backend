@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<PropertyAccountService>();
         services.AddScoped<FundService>();
         services.AddScoped<ReportService>();
+        services.AddScoped<BankService>();
 
         return services;
 

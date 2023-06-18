@@ -10,6 +10,18 @@ public class BankRepository : BaseRepository, IBankRepository
     {
     }
 
+    public async Task CreateBank(Bank bank)
+    {
+        _dbContext.Banks.Add(bank);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Bank>> GetAllBank()
+    {
+        return await _dbContext.Banks
+             .ToListAsync();
+    }
+
     public Task<Bank?> GetBank(string iban)
     {
         return _dbContext.Banks.Where(b => b.Iban == iban).FirstOrDefaultAsync();
