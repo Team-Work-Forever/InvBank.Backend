@@ -1,5 +1,4 @@
 using InvBank.Backend.Contracts.Payment;
-using InvBank.Backend.Contracts.Report;
 
 namespace InvBank.Backend.Contracts.Report;
 

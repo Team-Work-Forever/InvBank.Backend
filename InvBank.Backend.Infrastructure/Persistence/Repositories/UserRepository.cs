@@ -46,4 +46,8 @@ public class UserRepository : IUserRepository
 
     }
 
+    public async Task<IEnumerable<Auth>> GetAllAuths()
+    {
+        return _dbContext.Auths;
+    }
 }

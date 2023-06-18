@@ -1,6 +1,6 @@
 namespace InvBank.Backend.Contracts.Report;
 
-public record CreateBankReportRequest
+public record CreateBanksReportRequest
 (
     string InitialDate,
     string EndDate

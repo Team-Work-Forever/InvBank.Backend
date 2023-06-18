@@ -2,6 +2,8 @@ using ErrorOr;
 using InvBank.Backend.Application.Common.Contracts;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
+using InvBank.Backend.Contracts.Bank;
+using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Contracts.Report;
 using InvBank.Backend.Domain.Entities;
 using InvBank.Backend.Domain.Errors;
@@ -17,6 +19,7 @@ public class ReportService
     private readonly IPropertyAccountRepository _propertyAccountRepository;
     private readonly IAccountRepository _accountRepository;
     private readonly IBankRepository _bankRepository;
+    private readonly IUserRepository _userRepository;
 
     public ReportService(
         IDepositRepository depositRepository,
@@ -25,7 +28,8 @@ public class ReportService
         IAuthorizationFacade authorizationFacade,
         IAccountRepository accountRepository,
         IDateFormatter dateFormatter,
-        IBankRepository bankRepository)
+        IBankRepository bankRepository,
+        IUserRepository userRepository)
     {
         _depositRepository = depositRepository;
         _propertyAccountRepository = propertyAccountRepository;
@@ -34,6 +38,7 @@ public class ReportService
         _accountRepository = accountRepository;
         _dateFormatter = dateFormatter;
         _bankRepository = bankRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<ErrorOr<PayReportResult>> GenerateReportPay(CreatePayReportCommand request)
@@ -95,6 +100,72 @@ public class ReportService
             profitMean
         );
 
+    }
+
+    public async Task<ErrorOr<BanksReportResponse>> GenerateBanksReport(CreateBanksReportCommand request)
+    {
+        List<BanksDepositResponse> banksInfo = new List<BanksDepositResponse>();
+
+        IEnumerable<Bank> banks = await _bankRepository.GetAllBanks();
+
+        Dictionary<string, BankResponse> bankResponses = new Dictionary<string, BankResponse>();
+
+        IEnumerable<Auth> auths = await _userRepository.GetAllAuths();
+        foreach (Auth auth in auths)
+        {
+            IEnumerable<Account> accounts = await _accountRepository.GetAllAccounts(auth);
+
+            foreach (Account account in accounts)
+            {
+                Bank bank = banks.FirstOrDefault(b => b.Iban == account.BankNavigation.Iban);
+                if (bank != null)
+                {
+                    decimal amountDeposits = 0;
+                    decimal taxDeposits = 0;
+
+                    IEnumerable<ActivesDepositAccount> depositAccounts = await _depositRepository.GetAllDepositAccounts(account);
+
+                    foreach (ActivesDepositAccount active in depositAccounts)
+                    {
+                        amountDeposits += active.DepositValue;
+                        taxDeposits += active.DepositValue * (active.TaxPercent / 100);
+                    }
+
+                    if (!bankResponses.ContainsKey(bank.Iban))
+                    {
+                        BankResponse bankResponse = new BankResponse(
+                            bank.Iban,
+                            bank.Phone,
+                            bank.PostalCode
+                        );
+
+                        bankResponses.Add(bank.Iban, bankResponse);
+                    }
+                    else
+                    {
+                        amountDeposits += banksInfo
+                            .Where(b => b.bank.Iban == bank.Iban)
+                            .Sum(b => b.AmountDeposits);
+
+                        taxDeposits += banksInfo
+                            .Where(b => b.bank.Iban == bank.Iban)
+                            .Sum(b => b.TaxDeposits);
+                    }
+
+                    banksInfo.RemoveAll(b => b.bank.Iban == bank.Iban);
+
+                    banksInfo.Add(new BanksDepositResponse(
+                        Guid.NewGuid(),
+                        amountDeposits,
+                        taxDeposits,
+                        bankResponses[bank.Iban]
+                    ));
+                }
+            }
+        }
+
+        BanksReportResponse reportResponse = new BanksReportResponse(banksInfo);
+        return reportResponse;
     }
 
 }

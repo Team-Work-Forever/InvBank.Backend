@@ -1,9 +1,9 @@
 using InvBank.Backend.Application.Common.Contracts;
+using InvBank.Backend.Contracts.Bank;
 using InvBank.Backend.Contracts.Deposit;
 using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Contracts.PropertyAccount;
 using InvBank.Backend.Contracts.Report;
-using InvBank.Backend.Domain.Entities;
 
 namespace InvBank.Backend.API.Mappers;
 
@@ -40,6 +40,17 @@ public class ReportMapper : AutoMapper.Profile
                             pp.Ative.YearlyValue,
                             pp.Ative.Account
                         )))
+            ));
+
+        CreateMap<BankReportResult, BanksReportResponse>()
+            .ConvertUsing(pr => new BanksReportResponse(
+                pr.banksInfo.Select(pd => new BanksDepositResponse
+                    (pd.Id, pd.AmountDeposits, pd.TaxDeposits,
+                        new BankResponse(
+                            pd.bank.Iban,
+                            pd.bank.Phone,
+                            pd.bank.PostalCode
+                            )))
             ));
     }
 
