@@ -63,7 +63,6 @@ public class AccountController : ControllerBase
             deleteResult => Ok(new SimpleResponse("Conta Removida!")),
             firstError => Problem()
         );
-
     }
 
 }

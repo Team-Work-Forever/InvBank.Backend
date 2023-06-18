@@ -1,5 +1,6 @@
 using AutoMapper;
 using InvBank.Backend.Application.Services;
+using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Bank;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +23,7 @@ public class BankController : ControllerBase
     public async Task<ActionResult<string>> CreateBank([FromBody] RegisterBankRequest request)
     {
         await _bankService.CreateBank(request);
-        return Ok("Banco registado!");
+        return Ok(new SimpleResponse("Banco registado!"));
     }
 
     [HttpGet]

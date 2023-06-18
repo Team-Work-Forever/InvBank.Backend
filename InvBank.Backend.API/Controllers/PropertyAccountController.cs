@@ -1,5 +1,6 @@
 using AutoMapper;
 using InvBank.Backend.Application.Services;
+using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.PropertyAccount;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +25,7 @@ public class PropertyAccountController : ControllerBase
         var createResult = await _propertyAccountService.CreatePropertyAccount(request);
 
         return createResult.MatchFirst(
-            createResult => Ok("O ativo foi registado!"),
+            createResult => Ok(new SimpleResponse("O ativo foi registado!")),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }

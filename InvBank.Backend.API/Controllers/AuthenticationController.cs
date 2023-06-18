@@ -48,12 +48,12 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPost("register/company")]
-    public async Task<ActionResult<AuthenticationResult>> RegisterCompany([FromBody] RegisterCompanyRequest request)
+    public async Task<ActionResult<SimpleResponse>> RegisterCompany([FromBody] RegisterCompanyRequest request)
     {
         ErrorOr<string> authResult = await _mediator.Send(_mapper.Map<RegisterCompanyCommand>(request));
 
         return authResult.MatchFirst(
-            authResult => Ok(authResult),
+            authResult => Ok(new SimpleResponse(authResult)),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }
