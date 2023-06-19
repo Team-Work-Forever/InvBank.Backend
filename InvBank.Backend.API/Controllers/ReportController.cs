@@ -2,7 +2,6 @@ using AutoMapper;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts.Report;
-using InvBank.Backend.Domain.Entities;
 using InvBank.Backend.Infrastructure.Authentication;
 using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Mvc;
