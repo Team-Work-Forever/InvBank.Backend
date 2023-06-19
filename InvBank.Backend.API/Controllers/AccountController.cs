@@ -22,7 +22,7 @@ public class AccountController : ControllerBase
         _mapper = mapper;
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
+    [AuthorizeRole(Role.CLIENT)]
     [HttpPost("create")]
     public async Task<ActionResult<AccountResponse>> CreateAccount(CreateAccountRequest request)
     {
@@ -35,6 +35,7 @@ public class AccountController : ControllerBase
 
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet()]
     public async Task<ActionResult<AccountResponse>> GetAccount([FromQuery] string iban)
     {
@@ -47,6 +48,7 @@ public class AccountController : ControllerBase
 
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet("all")]
     public async Task<ActionResult<string>> GetAllAccounts()
     {
@@ -54,6 +56,7 @@ public class AccountController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<AccountResponse>>(accounts));
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeleteAccount([FromQuery] string iban)
     {

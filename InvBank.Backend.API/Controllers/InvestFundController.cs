@@ -3,6 +3,8 @@ using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Fund;
 using InvBank.Backend.Domain.Entities;
+using InvBank.Backend.Infrastructure.Authentication;
+using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvBank.Backend.API.Controllers;
@@ -20,6 +22,7 @@ public class InvestFundController : ControllerBase
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> CreateInvestFund([FromBody] CreateFundRequest request)
     {
@@ -31,6 +34,7 @@ public class InvestFundController : ControllerBase
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet()]
     public async Task<ActionResult<IEnumerable<FundResponse>>> GetInvestFundOfAccount([FromQuery] string iban)
     {

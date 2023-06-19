@@ -3,6 +3,8 @@ using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts.Report;
 using InvBank.Backend.Domain.Entities;
+using InvBank.Backend.Infrastructure.Authentication;
+using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvBank.Backend.API.Controllers;
@@ -23,6 +25,7 @@ public class ReportController : ControllerBase
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("profit")]
     public async Task<ActionResult<string>> GenerateReportProfit()
     {
@@ -35,6 +38,7 @@ public class ReportController : ControllerBase
         return Ok(profitReportResponse);
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("pay")]
     public async Task<ActionResult<PayReportResponse>> GenerateReportPay([FromQuery] string iban, CreatePayReportRequest request)
     {

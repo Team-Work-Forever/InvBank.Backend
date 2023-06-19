@@ -3,6 +3,8 @@ using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Contracts.PropertyAccount;
+using InvBank.Backend.Infrastructure.Authentication;
+using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvBank.Backend.API.Controllers;
@@ -20,6 +22,7 @@ public class PropertyAccountController : ControllerBase
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPost("create")]
     public async Task<ActionResult<string>> CreatePropertyAccount([FromBody] CreatePropertyAccountRequest request)
     {
@@ -31,6 +34,7 @@ public class PropertyAccountController : ControllerBase
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet()]
     public async Task<ActionResult<PropertyAccountResponse>> GetPropertyAccount([FromQuery] Guid propertyAccount)
     {
@@ -43,6 +47,7 @@ public class PropertyAccountController : ControllerBase
 
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<PropertyAccountResponse>>> GetAllPropertyAccount([FromQuery] string iban)
     {
@@ -55,6 +60,7 @@ public class PropertyAccountController : ControllerBase
 
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPost("pay")]
     public async Task<ActionResult<SimpleResponse>> PayDepositAccount([FromBody] PayPropertyRequest request)
     {
@@ -67,6 +73,7 @@ public class PropertyAccountController : ControllerBase
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPut("update")]
     public async Task<ActionResult<PropertyAccountResponse>> UpdatePropertyAccount([FromQuery] Guid id, [FromBody] UpdatePropertyAccountRequest request)
     {
@@ -78,6 +85,7 @@ public class PropertyAccountController : ControllerBase
        );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeletePropertyAccount([FromQuery] Guid id)
     {

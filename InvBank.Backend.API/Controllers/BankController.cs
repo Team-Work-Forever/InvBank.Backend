@@ -2,6 +2,8 @@ using AutoMapper;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Bank;
+using InvBank.Backend.Infrastructure.Authentication;
+using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvBank.Backend.API.Controllers;
@@ -19,6 +21,7 @@ public class BankController : ControllerBase
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.ADMIN)]
     [HttpPost]
     public async Task<ActionResult<string>> CreateBank([FromBody] RegisterBankRequest request)
     {
@@ -26,6 +29,7 @@ public class BankController : ControllerBase
         return Ok(new SimpleResponse("Banco registado!"));
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BankResponse>>> GetBanks()
     {

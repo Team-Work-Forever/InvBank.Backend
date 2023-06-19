@@ -13,7 +13,6 @@ namespace InvBank.Backend.API.Controllers;
 
 [ApiController]
 [Route("deposits")]
-[AuthorizeRole(Role.CLIENT)]
 public class DepositController : ControllerBase
 {
     private readonly IMapper _mapper;
@@ -30,6 +29,7 @@ public class DepositController : ControllerBase
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> RegisterDepositAccount([FromBody] CreateDepositRequest request)
     {
@@ -43,6 +43,7 @@ public class DepositController : ControllerBase
 
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPost("pay")]
     public async Task<ActionResult<SimpleResponse>> PayDepositAccount([FromBody] PayDepositRequest request)
     {
@@ -55,6 +56,7 @@ public class DepositController : ControllerBase
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet()]
     public async Task<ActionResult<dynamic>> GetDeposit([FromQuery] string depositId)
     {
@@ -66,6 +68,7 @@ public class DepositController : ControllerBase
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<dynamic>>> GetAllDeposits([FromQuery] string accountIban)
     {
@@ -77,6 +80,7 @@ public class DepositController : ControllerBase
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPut("update")]
     public async Task<ActionResult<SimpleResponse>> UpdateDeposit([FromQuery] string depositIban, [FromBody] UpdateDepositRequest request)
     {
@@ -88,6 +92,7 @@ public class DepositController : ControllerBase
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeleteDeposit([FromQuery] string depositIban)
     {
