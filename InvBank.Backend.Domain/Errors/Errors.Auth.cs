@@ -14,5 +14,13 @@ public static partial class Errors
                 "Auth.IncorrentCredentials",
                 "O email ou password estão errados!");
 
+        public static Error CannotGetEmail => Error.Unexpected(
+                "Auth.CannotGetEmail",
+                "Não é possivel obter o email");
+
+        public static Error AuthorizationFailed => Error.Unexpected(
+                "Auth.AuthorizationFailed",
+                "Não estas autorizado a realizar esta ação");
+
     }
 }

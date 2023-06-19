@@ -24,9 +24,14 @@ public class FundService
 
     private async Task<ErrorOr<Account>> GetAccount(string iban)
     {
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        Account? findAccount = await _accountRepository.GetAccount(auth, iban);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        Account? findAccount = await _accountRepository.GetAccount(auth.Value, iban);
 
         if (findAccount is null)
         {

@@ -38,9 +38,14 @@ public class DepositAccountService
     public async Task<ErrorOr<IEnumerable<ActivesDepositAccount>>> GetDepositAccounts(string accountIban)
     {
 
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        Account? findAccount = await _accountRepository.GetAccount(auth, accountIban);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        Account? findAccount = await _accountRepository.GetAccount(auth.Value, accountIban);
 
         // Verify account existance
         if (findAccount is null)
@@ -97,7 +102,7 @@ public class DepositAccountService
         }
 
         if (depositResult.Value.DepositValue < amount)
-        {   
+        {
             return Errors.Deposit.DepositAmountGreater;
         }
 

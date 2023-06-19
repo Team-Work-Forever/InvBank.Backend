@@ -71,6 +71,8 @@ var app = builder.Build();
 
         app.MapControllers();
 
+        app.UseExceptionHandler("/error");
+
         app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
         app.Run();

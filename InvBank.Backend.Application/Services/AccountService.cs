@@ -33,7 +33,12 @@ public class AccountService
     {
 
         // Get User
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
+
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
 
         // Generate new IBAN
         Bank? findTask = await _bankRepository.GetBank(request.iban);
@@ -50,7 +55,7 @@ public class AccountService
 
         findTask.Accounts.Add(account);
 
-        await _userRepository.AssociateAccount(auth, account);
+        await _userRepository.AssociateAccount(auth.Value, account);
         await _bankRepository.UpdateBank(findTask);
 
         return account;
@@ -72,9 +77,15 @@ public class AccountService
     public async Task<ErrorOr<Account>> GetAccount(string iban)
     {
 
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        Account? findAccount = await _accountRepository.GetAccount(auth, iban);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+
+        Account? findAccount = await _accountRepository.GetAccount(auth.Value, iban);
 
         if (findAccount is null)
         {
@@ -85,10 +96,16 @@ public class AccountService
 
     }
 
-    public async Task<IEnumerable<Account>> GetAllAccounts()
+    public async Task<ErrorOr<IEnumerable<Account>>> GetAllAccounts()
     {
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
-        return await _accountRepository.GetAllAccounts(auth);
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
+
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        return (await _accountRepository.GetAllAccounts(auth.Value)).ToList();
     }
 
 }

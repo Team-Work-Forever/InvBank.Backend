@@ -52,8 +52,14 @@ public class AccountController : ControllerBase
     [HttpGet("all")]
     public async Task<ActionResult<string>> GetAllAccounts()
     {
-        var accounts = await _accountService.GetAllAccounts();
-        return Ok(_mapper.Map<IEnumerable<AccountResponse>>(accounts));
+        var accountsResult = await _accountService.GetAllAccounts();
+
+        return accountsResult.MatchFirst
+        (
+            accountsResult => Ok(_mapper.Map<IEnumerable<AccountResponse>>(accountsResult)),
+            firstError => Problem()
+        );
+
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]

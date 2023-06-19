@@ -8,7 +8,7 @@ namespace InvBank.Backend.Application.Services;
 
 public class ProfileService
 {
-    private readonly IAuthorizationFacade _authorizationFacade;   
+    private readonly IAuthorizationFacade _authorizationFacade;
     private readonly IUserRepository _userRepository;
 
     public ProfileService(IUserRepository userRepository, IAuthorizationFacade authorizationFacade)
@@ -17,19 +17,25 @@ public class ProfileService
         _authorizationFacade = authorizationFacade;
     }
 
-    public async Task<ErrorOr<Tuple<Profile, string>>> GetProfile() {
+    public async Task<ErrorOr<Tuple<Profile, string>>> GetProfile()
+    {
 
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        var profile = await _userRepository.GetProfileByEmail(auth.Email);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        var profile = await _userRepository.GetProfileByEmail(auth.Value.Email);
 
         if (profile is null)
         {
             return Errors.Profile.ProfileNofFound;
         }
 
-        return new Tuple<Profile, string>(profile, auth.Email);
-        
+        return new Tuple<Profile, string>(profile, auth.Value.Email);
+
     }
 
 }

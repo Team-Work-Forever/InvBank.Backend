@@ -39,9 +39,14 @@ public class ReportService
     public async Task<ErrorOr<PayReportResult>> GenerateReportPay(CreatePayReportCommand request)
     {
 
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        Account? account = await _accountRepository.GetAccount(auth, request.Iban);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        Account? account = await _accountRepository.GetAccount(auth.Value, request.Iban);
 
         if (account is null)
         {

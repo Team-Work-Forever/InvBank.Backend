@@ -29,9 +29,14 @@ public class PropertyAccountService
     public async Task<ErrorOr<ActivesProperty>> CreatePropertyAccount(CreatePropertyAccountRequest request)
     {
 
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        Account? findAccount = await _accountRepository.GetAccount(auth, request.AccountIBAN);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        Account? findAccount = await _accountRepository.GetAccount(auth.Value, request.AccountIBAN);
 
         if (findAccount is null)
         {
@@ -76,9 +81,14 @@ public class PropertyAccountService
     public async Task<ErrorOr<IEnumerable<ActivesProperty>>> GetAllPropertyAccounts(string accountIban)
     {
 
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        Account? account = await _accountRepository.GetAccount(auth, accountIban);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        Account? account = await _accountRepository.GetAccount(auth.Value, accountIban);
 
         if (account is null)
         {

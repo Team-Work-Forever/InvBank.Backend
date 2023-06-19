@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using ErrorOr;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Domain.Entities;
+using InvBank.Backend.Domain.Errors;
 using Microsoft.AspNetCore.Http;
 
 namespace InvBank.Backend.Infrastructure.Authentication;
@@ -18,21 +20,21 @@ public class AuthorizationFacade : IAuthorizationFacade
         _userRepository = userRepository;
     }
 
-    public async Task<Auth> GetAuthenticatedUser()
+    public async Task<ErrorOr<Auth>> GetAuthenticatedUser()
     {
 
         Claim? claim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email);
 
         if (claim is null)
         {
-            throw new Exception("");
+            return Errors.Auth.CannotGetEmail;
         }
 
         Auth? userAuth = await _userRepository.GetUserAuth(claim.Value);
 
         if (userAuth is null)
         {
-            throw new Exception("Não existe nenhum utilizador com esse email");
+            return Errors.Auth.AuthorizationFailed;
         }
 
         return userAuth;

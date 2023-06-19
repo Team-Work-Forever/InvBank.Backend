@@ -29,9 +29,14 @@ public class CreateDepositCommandHandler : IRequestHandler<CreateDepositCommand,
     public async Task<ErrorOr<string>> Handle(CreateDepositCommand request, CancellationToken cancellationToken)
     {
 
-        Auth auth = await _authorizationFacade.GetAuthenticatedUser();
+        var auth = await _authorizationFacade.GetAuthenticatedUser();
 
-        var findAccount = await _accountRepository.GetAccount(auth, request.Account);
+        if (auth.IsError)
+        {
+            return auth.Errors;
+        }
+
+        var findAccount = await _accountRepository.GetAccount(auth.Value, request.Account);
 
         if (findAccount is null)
         {
