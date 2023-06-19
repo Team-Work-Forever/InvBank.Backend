@@ -75,6 +75,12 @@ public class PropertyAccountRepository : BaseRepository, IPropertyAccountReposit
                 Amount = amount
             });
 
+        _dbContext
+            .ActivesProperties
+            .Where(property => property.Id == propertyId)
+            .First()
+            .PropertyValue -= amount;
+
         await _dbContext.SaveChangesAsync();
     }
 

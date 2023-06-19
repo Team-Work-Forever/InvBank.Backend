@@ -73,17 +73,23 @@ public class DepositRepository : BaseRepository, IDepositRepository
             .Where(pay => pay.Ative.Account == iban)
             .ToListAsync();
     }
-    
+
     public async Task PayDepositValue(Guid depositId, decimal amount)
     {
         
-         _dbContext
+        _dbContext
             .PaymentDeposits
             .Add( new PaymentDeposit {
                 AtiveId = depositId,
                 PaymentDate = DateOnly.FromDateTime(DateTime.Now),
                 Amount = amount
             });
+
+        _dbContext
+            .ActivesDepositAccounts
+            .Where(deposit => deposit.Id == depositId)
+            .First()
+            .DepositValue -= amount;
 
         await _dbContext.SaveChangesAsync();
 
