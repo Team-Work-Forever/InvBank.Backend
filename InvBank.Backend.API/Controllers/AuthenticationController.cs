@@ -3,6 +3,7 @@ using ErrorOr;
 using InvBank.Backend.Application.Authentication.Commands.RegisterClient;
 using InvBank.Backend.Application.Authentication.Commands.RegisterCompany;
 using InvBank.Backend.Application.Authentication.Queries.Login;
+using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Authentication;
 using MediatR;
@@ -16,13 +17,15 @@ namespace InvBank.Backend.API.Controllers;
 [AllowAnonymous]
 public class AuthenticationController : ControllerBase
 {
+    private readonly ProfileService _profileService;
     private readonly IMapper _mapper;
     private readonly ISender _mediator;
 
-    public AuthenticationController(ISender mediator, IMapper mapper)
+    public AuthenticationController(ISender mediator, IMapper mapper, ProfileService profileService)
     {
         _mediator = mediator;
         _mapper = mapper;
+        _profileService = profileService;
     }
 
     [HttpPost("login")]
@@ -56,6 +59,21 @@ public class AuthenticationController : ControllerBase
             authResult => Ok(new SimpleResponse(authResult)),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
+    }
+
+    [Authorize]
+    [HttpPost("profile")]
+    public async Task<ActionResult<ProfileResponse>> GetProfile()
+    {
+
+        var profileResponse = await _profileService.GetProfile();
+
+        return profileResponse.MatchFirst
+        (
+            profileResponse => Ok(_mapper.Map<ProfileResponse>(profileResponse)),
+            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+        );
+
     }
 
 }

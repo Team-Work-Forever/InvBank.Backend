@@ -20,9 +20,9 @@ public class UserRepository : IUserRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<Auth?> GetProfileByEmail(string email)
+    public async Task<Profile?> GetProfileByEmail(string email)
     {
-        return await _dbContext.Auths.FindAsync(email);
+        return await _dbContext.Profiles.Where(prof => prof.IdNavigation.Email == email).FirstAsync();
     }
 
     public async Task<Auth?> GetUserAuth(string email)
