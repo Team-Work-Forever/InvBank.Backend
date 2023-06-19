@@ -42,6 +42,7 @@ public class PropertyAccountRepository : BaseRepository, IPropertyAccountReposit
     {
         return await _dbContext.ActivesProperties
             .Where(props => props.Account == iban)
+            .Where(props => props.DeletedAt == null)
             .ToListAsync();
     }
 
@@ -62,6 +63,19 @@ public class PropertyAccountRepository : BaseRepository, IPropertyAccountReposit
                    .Include(pay => pay.Ative)
                    .Where(pay => pay.Ative.Account == iban)
                    .ToListAsync();
+    }
+
+    public async Task PayPropertyValue(Guid propertyId, decimal amount)
+    {
+        _dbContext
+            .PaymentProperties
+            .Add( new PaymentProperty {
+                AtiveId = propertyId,
+                PaymentDate = DateOnly.FromDateTime(DateTime.Now),
+                Amount = amount
+            });
+
+        await _dbContext.SaveChangesAsync();
     }
 
     public async Task<ActivesProperty> UpdateActiveProperty(ActivesProperty activesProperty)

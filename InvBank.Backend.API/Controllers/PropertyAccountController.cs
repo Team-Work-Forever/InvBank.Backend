@@ -1,6 +1,7 @@
 using AutoMapper;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
+using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Contracts.PropertyAccount;
 using Microsoft.AspNetCore.Mvc;
 
@@ -52,6 +53,18 @@ public class PropertyAccountController : ControllerBase
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
 
+    }
+
+    [HttpPost("pay")]
+    public async Task<ActionResult<SimpleResponse>> PayDepositAccount([FromBody] PayPropertyRequest request)
+    {
+        var payResult = await _propertyAccountService.Pay(request.PropertyId, request.Amount);
+
+        return payResult.MatchFirst
+        (
+            payResult => Ok(new SimpleResponse(payResult)),
+            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+        );
     }
 
     [HttpPut("update")]

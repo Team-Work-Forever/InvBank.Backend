@@ -10,8 +10,8 @@ namespace InvBank.Backend.Application.Services;
 public class DepositAccountService
 {
     private readonly IAuthorizationFacade _authorizationFacade;
-    public readonly IDepositRepository _depositRepository;
-    public readonly IAccountRepository _accountRepository;
+    private readonly IDepositRepository _depositRepository;
+    private readonly IAccountRepository _accountRepository;
 
     public DepositAccountService(
         IDepositRepository depositRepository,
@@ -84,5 +84,24 @@ public class DepositAccountService
 
         return await _depositRepository.UpdateDeposit(depositAccount.Value);
 
+    }
+
+    public async Task<ErrorOr<string>> Pay(Guid depositId, decimal amount)
+    {
+
+        var depositResult = await GetDeposit(depositId.ToString());
+
+        if (depositResult.IsError)
+        {
+            return depositResult.Errors;
+        }
+
+        if (depositResult.Value.DepositValue < amount)
+        {   
+            return Errors.Deposit.DepositAmountGreater;
+        }
+
+        await _depositRepository.PayDepositValue(depositId, amount);
+        return "Pago";
     }
 }

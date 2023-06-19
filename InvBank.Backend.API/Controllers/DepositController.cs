@@ -3,10 +3,10 @@ using InvBank.Backend.Application.Actives.Deposit.CreateDeposit;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Deposit;
+using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Infrastructure.Authentication;
 using InvBank.Backend.Infrastructure.Providers;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvBank.Backend.API.Controllers;
@@ -41,6 +41,18 @@ public class DepositController : ControllerBase
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
 
+    }
+
+    [HttpPost("pay")]
+    public async Task<ActionResult<SimpleResponse>> PayDepositAccount([FromBody] PayDepositRequest request)
+    {
+        var payResult = await _accountService.Pay(request.DepositId, request.Amount);
+
+        return payResult.MatchFirst
+        (
+            payResult => Ok(new SimpleResponse(payResult)),
+            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+        );
     }
 
     [HttpGet()]

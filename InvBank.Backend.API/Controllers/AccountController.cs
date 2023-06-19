@@ -24,12 +24,12 @@ public class AccountController : ControllerBase
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("create")]
-    public async Task<ActionResult<string>> CreateAccount(CreateAccountRequest request)
+    public async Task<ActionResult<AccountResponse>> CreateAccount(CreateAccountRequest request)
     {
         var createResult = await _accountService.CreateAccount(request);
 
         return createResult.MatchFirst(
-            createResult => Ok("Conta criada!"),
+            createResult => Ok(_mapper.Map<AccountResponse>(createResult)),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
 
