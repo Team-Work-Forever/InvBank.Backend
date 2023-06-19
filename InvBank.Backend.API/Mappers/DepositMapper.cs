@@ -18,6 +18,7 @@ public class DepositMapper : AutoMapper.Profile
                 acc.DepositName,
                 acc.InitialDate.ToString("dd/MM/yyyy"),
                 acc.Duration,
+                acc.DepositValue,
                 acc.TaxPercent,
                 acc.YearlyTax,
                 acc.Account));

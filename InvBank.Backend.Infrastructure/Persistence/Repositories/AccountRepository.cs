@@ -25,6 +25,7 @@ public class AccountRepository : BaseRepository, IAccountRepository
             .Include(ac => ac.AccountNavigation.ActivesDepositAccounts)
             .Include(ac => ac.AccountNavigation.ActivesProperties)
             .Select(ac => ac.AccountNavigation)
+            .Where(ac => ac.DeletedAt == null)
             .ToListAsync();
     }
 

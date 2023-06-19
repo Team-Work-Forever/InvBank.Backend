@@ -25,6 +25,7 @@ public class DepositRepository : BaseRepository, IDepositRepository
     {
         return await _dbContext.ActivesDepositAccounts
             .Where(act => act.Account == account.Iban)
+            .Where(act => act.DeletedAt == null)
             .ToListAsync();
     }
 
@@ -72,4 +73,20 @@ public class DepositRepository : BaseRepository, IDepositRepository
             .Where(pay => pay.Ative.Account == iban)
             .ToListAsync();
     }
+    
+    public async Task PayDepositValue(Guid depositId, decimal amount)
+    {
+        
+         _dbContext
+            .PaymentDeposits
+            .Add( new PaymentDeposit {
+                AtiveId = depositId,
+                PaymentDate = DateOnly.FromDateTime(DateTime.Now),
+                Amount = amount
+            });
+
+        await _dbContext.SaveChangesAsync();
+
+    }
+
 }

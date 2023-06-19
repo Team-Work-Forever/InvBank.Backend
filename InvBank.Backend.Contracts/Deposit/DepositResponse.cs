@@ -6,6 +6,7 @@ public record DepositResponse
     string DepositName,
     string InitialDate,
     int Duration,
+    decimal Value,
     decimal TaxPercent,
     decimal YearlyTax,
     string Account

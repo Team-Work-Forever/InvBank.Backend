@@ -1,5 +1,7 @@
 using AutoMapper;
 using InvBank.Backend.Application.Services;
+using InvBank.Backend.Contracts;
+using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Contracts.PropertyAccount;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +26,7 @@ public class PropertyAccountController : ControllerBase
         var createResult = await _propertyAccountService.CreatePropertyAccount(request);
 
         return createResult.MatchFirst(
-            createResult => Ok("O ativo foi registado!"),
+            createResult => Ok(new SimpleResponse("O ativo foi registado!")),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }
@@ -44,7 +46,6 @@ public class PropertyAccountController : ControllerBase
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<PropertyAccountResponse>>> GetAllPropertyAccount([FromQuery] string iban)
     {
-
         var propertyAccountsResult = await _propertyAccountService.GetAllPropertyAccounts(iban);
 
         return propertyAccountsResult.MatchFirst(
@@ -54,8 +55,20 @@ public class PropertyAccountController : ControllerBase
 
     }
 
+    [HttpPost("pay")]
+    public async Task<ActionResult<SimpleResponse>> PayDepositAccount([FromBody] PayPropertyRequest request)
+    {
+        var payResult = await _propertyAccountService.Pay(request.PropertyId, request.Amount);
+
+        return payResult.MatchFirst
+        (
+            payResult => Ok(new SimpleResponse(payResult)),
+            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+        );
+    }
+
     [HttpPut("update")]
-    public async Task<ActionResult<dynamic>> UpdatePropertyAccount([FromQuery] Guid id, [FromBody] UpdatePropertyAccountRequest request)
+    public async Task<ActionResult<PropertyAccountResponse>> UpdatePropertyAccount([FromQuery] Guid id, [FromBody] UpdatePropertyAccountRequest request)
     {
         var propertyUpdateResult = await _propertyAccountService.UpdatePropertyAccount(id, request);
 
@@ -66,12 +79,12 @@ public class PropertyAccountController : ControllerBase
     }
 
     [HttpDelete("delete")]
-    public async Task<ActionResult<string>> DeletePropertyAccount([FromQuery] Guid id)
+    public async Task<ActionResult<SimpleResponse>> DeletePropertyAccount([FromQuery] Guid id)
     {
         var propertyUpdateResult = await _propertyAccountService.DeletePropertyAccount(id);
 
         return propertyUpdateResult.MatchFirst(
-            propertyUpdate => Ok("Foi removido o ativo movél"),
+            propertyUpdate => Ok(new SimpleResponse("Foi removido o ativo movél")),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }

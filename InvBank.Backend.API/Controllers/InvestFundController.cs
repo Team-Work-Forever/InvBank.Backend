@@ -1,5 +1,6 @@
 using AutoMapper;
 using InvBank.Backend.Application.Services;
+using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Fund;
 using InvBank.Backend.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -20,12 +21,12 @@ public class InvestFundController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<string>> CreateInvestFund([FromBody] CreateFundRequest request)
+    public async Task<ActionResult<SimpleResponse>> CreateInvestFund([FromBody] CreateFundRequest request)
     {
         var fundResult = await _fundService.CreateFund(request);
 
         return fundResult.MatchFirst(
-            fundResult => Ok("Fundo Criado!"),
+            fundResult => Ok(new SimpleResponse("Fundo Criado!")),
             firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
         );
     }

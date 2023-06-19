@@ -29,7 +29,7 @@ public class AccountService
         _userRepository = userRepository;
     }
 
-    public async Task<ErrorOr<int>> CreateAccount(CreateAccountRequest request)
+    public async Task<ErrorOr<Account>> CreateAccount(CreateAccountRequest request)
     {
 
         // Get User
@@ -51,7 +51,9 @@ public class AccountService
         findTask.Accounts.Add(account);
 
         await _userRepository.AssociateAccount(auth, account);
-        return await _bankRepository.UpdateBank(findTask);
+        await _bankRepository.UpdateBank(findTask);
+
+        return account;
 
     }
 

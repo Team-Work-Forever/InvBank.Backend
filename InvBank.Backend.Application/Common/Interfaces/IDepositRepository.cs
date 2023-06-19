@@ -11,4 +11,5 @@ public interface IDepositRepository
     Task<ActivesDepositAccount> UpdateDeposit(ActivesDepositAccount depositAccount);
     Task<IEnumerable<AtiveStateDeposit>> GetAtives();
     Task<IEnumerable<PaymentDeposit>> GetPayments(string iban);
+    Task PayDepositValue(Guid depositId, decimal amount);
 }

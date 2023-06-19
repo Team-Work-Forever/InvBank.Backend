@@ -11,4 +11,5 @@ public interface IPropertyAccountRepository
     Task<IEnumerable<ActivesProperty>> GetAllPropertyAccounts(string iban);
     Task<IEnumerable<AtiveStateProperty>> GetAtives();
     Task<IEnumerable<PaymentProperty>> GetPayments(string iban);
+    Task PayPropertyValue(Guid propertyId, decimal amount);
 }

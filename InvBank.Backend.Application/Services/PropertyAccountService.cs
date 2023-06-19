@@ -124,4 +124,23 @@ public class PropertyAccountService
         return await _propertyAccountRepository.DeleteActiveProperty(id);
     }
 
+    public async Task<ErrorOr<string>> Pay(Guid propertyId, decimal amount)
+    {
+
+        var result = await GetPropertyAccount(propertyId);
+
+        if (result.IsError)
+        {
+            return result.Errors;
+        }
+
+        if (result.Value.PropertyValue < amount)
+        {
+            return Errors.PropertyAccount.PropertyAmountGreater;
+        }
+
+        await _propertyAccountRepository.PayPropertyValue(propertyId, amount);
+        return "Ativo Imóvel Pago";
+
+    }
 }
