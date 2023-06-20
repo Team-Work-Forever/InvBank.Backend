@@ -56,26 +56,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 {
-    if (app.Environment.IsDevelopment())
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(options =>
-        {
-            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API V1");
-        });
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API V1");
+    });
 
+    app.UseHttpsRedirection();
 
-        app.UseHttpsRedirection();
+    app.UseAuthorization();
 
-        app.UseAuthorization();
+    app.MapControllers();
 
-        app.MapControllers();
+    app.UseExceptionHandler("/error");
 
-        app.UseExceptionHandler("/error");
+    app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 
-        app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-
-        app.Run();
-    }
+    await app.RunAsync();
 }
 
