@@ -6,7 +6,7 @@ namespace InvBank.Backend.API.Controllers;
 public class BaseController : ControllerBase
 {
 
-    public IActionResult Problem(List<Error> errors)
+    public ActionResult<T> Problem<T>(List<Error> errors)
     {
         var error = errors[0];
 

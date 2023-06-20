@@ -13,7 +13,7 @@ namespace InvBank.Backend.API.Controllers;
 
 [ApiController]
 [Route("deposits")]
-public class DepositController : ControllerBase
+public class DepositController : BaseController
 {
     private readonly IMapper _mapper;
     public readonly ISender _mediator;
@@ -36,9 +36,9 @@ public class DepositController : ControllerBase
 
         var result = await _mediator.Send(_mapper.Map<CreateDepositCommand>(request));
 
-        return result.MatchFirst(
+        return result.Match(
             result => Ok(new SimpleResponse(result)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<SimpleResponse>(firstError)
         );
 
     }
@@ -49,34 +49,34 @@ public class DepositController : ControllerBase
     {
         var payResult = await _accountService.Pay(request.DepositId, request.Amount);
 
-        return payResult.MatchFirst
+        return payResult.Match
         (
             payResult => Ok(new SimpleResponse(payResult)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<SimpleResponse>(firstError)
         );
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet()]
-    public async Task<ActionResult<dynamic>> GetDeposit([FromQuery] string depositId)
+    public async Task<ActionResult<DepositResponse>> GetDeposit([FromQuery] string depositId)
     {
         var depositResult = await _accountService.GetDeposit(depositId);
 
-        return depositResult.MatchFirst(
+        return depositResult.Match(
             depositsResult => Ok(_mapper.Map<DepositResponse>(depositsResult)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<DepositResponse>(firstError)
         );
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpGet("all")]
-    public async Task<ActionResult<IEnumerable<dynamic>>> GetAllDeposits([FromQuery] string accountIban)
+    public async Task<ActionResult<IEnumerable<DepositResponse>>> GetAllDeposits([FromQuery] string accountIban)
     {
         var depositsResult = await _accountService.GetDepositAccounts(accountIban);
 
-        return depositsResult.MatchFirst(
+        return depositsResult.Match(
             depositsResult => Ok(_mapper.Map<IEnumerable<DepositResponse>>(depositsResult)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<IEnumerable<DepositResponse>>(firstError)
         );
     }
 
@@ -86,9 +86,9 @@ public class DepositController : ControllerBase
     {
         var updateResult = await _accountService.UpdateDeposit(depositIban, request);
 
-        return updateResult.MatchFirst(
+        return updateResult.Match(
             updateResult => Ok(new SimpleResponse("Deposito Atualizado!")),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<SimpleResponse>(firstError)
         );
     }
 
@@ -98,9 +98,9 @@ public class DepositController : ControllerBase
     {
         var deleteResult = await _accountService.DeleteDeposit(depositIban);
 
-        return deleteResult.MatchFirst(
+        return deleteResult.Match(
             updateResult => Ok(new SimpleResponse("Deposito removido!")),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<SimpleResponse>(firstError)
         );
     }
 

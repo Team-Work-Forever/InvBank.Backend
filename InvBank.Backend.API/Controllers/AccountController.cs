@@ -11,7 +11,7 @@ namespace InvBank.Backend.API.Controllers;
 
 [ApiController]
 [Route("accounts")]
-public class AccountController : ControllerBase
+public class AccountController : BaseController
 {
     private readonly IMapper _mapper;
     private readonly AccountService _accountService;
@@ -28,22 +28,22 @@ public class AccountController : ControllerBase
     {
         var createResult = await _accountService.CreateAccount(request);
 
-        return createResult.MatchFirst(
+        return createResult.Match(
             createResult => Ok(_mapper.Map<AccountResponse>(createResult)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<AccountResponse>(firstError)
         );
 
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
-    [HttpGet()]
+    [HttpGet("")]
     public async Task<ActionResult<AccountResponse>> GetAccount([FromQuery] string iban)
     {
         var accountResult = await _accountService.GetAccount(iban);
 
-        return accountResult.MatchFirst(
+        return accountResult.Match(
             accountResult => Ok(_mapper.Map<AccountResponse>(accountResult)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<AccountResponse>(firstError)
         );
 
     }
@@ -54,10 +54,9 @@ public class AccountController : ControllerBase
     {
         var accountsResult = await _accountService.GetAllAccounts();
 
-        return accountsResult.MatchFirst
-        (
+        return accountsResult.Match(
             accountsResult => Ok(_mapper.Map<IEnumerable<AccountResponse>>(accountsResult)),
-            firstError => Problem()
+            firstError => Problem<string>(firstError)
         );
 
     }
@@ -70,7 +69,7 @@ public class AccountController : ControllerBase
 
         return deleteResult.Match(
             deleteResult => Ok(new SimpleResponse("Conta Removida!")),
-            firstError => Problem()
+            firstError => Problem<SimpleResponse>(firstError)
         );
     }
 

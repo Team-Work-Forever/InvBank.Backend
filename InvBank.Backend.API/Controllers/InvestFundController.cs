@@ -11,7 +11,7 @@ namespace InvBank.Backend.API.Controllers;
 
 [ApiController]
 [Route("funds")]
-public class InvestFundController : ControllerBase
+public class InvestFundController : BaseController
 {
     private readonly IMapper _mapper;
     private readonly FundService _fundService;
@@ -28,9 +28,9 @@ public class InvestFundController : ControllerBase
     {
         var fundResult = await _fundService.CreateFund(request);
 
-        return fundResult.MatchFirst(
+        return fundResult.Match(
             fundResult => Ok(new SimpleResponse("Fundo Criado!")),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<SimpleResponse>(firstError)
         );
     }
 
@@ -40,9 +40,9 @@ public class InvestFundController : ControllerBase
     {
         var fundsResult = await _fundService.GetFundsOfAccount(iban);
 
-        return fundsResult.MatchFirst(
+        return fundsResult.Match(
             fundsResult => Ok(_mapper.Map<IEnumerable<FundResponse>>(fundsResult)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<IEnumerable<FundResponse>>(firstError)
         );
     }
 

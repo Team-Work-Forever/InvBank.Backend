@@ -10,7 +10,7 @@ namespace InvBank.Backend.API.Controllers;
 
 [ApiController]
 [Route("banks")]
-public class BankController : ControllerBase
+public class BankController : BaseController
 {
     private readonly IMapper _mapper;
     private readonly BankService _bankService;

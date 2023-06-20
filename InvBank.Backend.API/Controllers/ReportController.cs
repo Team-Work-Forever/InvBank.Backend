@@ -10,7 +10,7 @@ namespace InvBank.Backend.API.Controllers;
 
 [ApiController]
 [Route("report")]
-public class ReportController : ControllerBase
+public class ReportController : BaseController
 {
     private readonly IMapper _mapper;
     private readonly IDateFormatter _dateFormatter;
@@ -48,9 +48,9 @@ public class ReportController : ControllerBase
                 iban
              ));
 
-        return payReportResult.MatchFirst(
+        return payReportResult.Match(
             payReportResult => Ok(_mapper.Map<PayReportResponse>(payReportResult)),
-            firstError => Problem(statusCode: StatusCodes.Status409Conflict, title: firstError.Description)
+            firstError => Problem<PayReportResponse>(firstError)
         );
     }
 
