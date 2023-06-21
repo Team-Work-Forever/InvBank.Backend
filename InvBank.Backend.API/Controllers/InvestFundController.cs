@@ -46,4 +46,28 @@ public class InvestFundController : BaseController
         );
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [HttpPut("update")]
+    public async Task<ActionResult<FundResponse>> UpdateInvestmentFund([FromQuery] Guid fundId, [FromBody] UpdateFundRequest request)
+    {
+        var updateResult = await _fundService.updateFund(fundId, request);
+
+        return updateResult.Match(
+            updateResult => Ok(_mapper.Map<FundResponse>(updateResult)),
+            firstError => Problem<FundResponse>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [HttpDelete("delete")]
+    public async Task<ActionResult<SimpleResponse>> DeleteInvestmentFund([FromQuery] Guid fundId)
+    {
+        var deleteResult = await _fundService.deleteFund(fundId);
+
+        return deleteResult.Match(
+            deleteResult => Ok(new SimpleResponse(deleteResult)),
+            firstError => Problem<SimpleResponse>(firstError)
+        );
+    }
+
 }

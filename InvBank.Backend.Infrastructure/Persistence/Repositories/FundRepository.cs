@@ -25,11 +25,39 @@ public class FundRepository : IFundRepository
         return await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<ActivesInvestmentFund> UpdateFund(ActivesInvestmentFund investmentFund)
+    {
+
+        _dbContext.Update<ActivesInvestmentFund>(investmentFund);
+        await _dbContext.SaveChangesAsync();
+
+        return investmentFund;
+
+    }
+
+    public async Task<int> DeleteFund(Guid id)
+    {
+        var depositAccount = await _dbContext.ActivesInvestmentFunds.Where(ada => ada.Id == id).FirstAsync();
+        depositAccount.DeletedAt = DateOnly.FromDateTime(DateTime.Now);
+
+        await UpdateFund(depositAccount);
+        return await _dbContext.SaveChangesAsync();
+    }
+
     public async Task<IEnumerable<ActivesInvestmentFund>> GetInvestmentFundsOfAccount(string iban)
     {
         return await _dbContext.AccountInvs
             .Where(ai => ai.Account == iban)
             .Select(ai => ai.IdNavigation)
             .ToListAsync();
+    }
+
+    public async Task<ActivesInvestmentFund?> GetInvestmentFund(Guid id)
+    {
+        return await _dbContext
+            .ActivesInvestmentFunds
+            .Where(acf => acf.Id == id)
+            .Where(acf => acf.DeletedAt == null)
+            .FirstOrDefaultAsync();
     }
 }
