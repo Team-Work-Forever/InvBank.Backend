@@ -1,4 +1,5 @@
 using ErrorOr;
+using FluentValidation;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Contracts.Deposit;
@@ -7,8 +8,9 @@ using InvBank.Backend.Domain.Errors;
 
 namespace InvBank.Backend.Application.Services;
 
-public class DepositAccountService
+public class DepositAccountService : BaseService
 {
+    private readonly IValidator<UpdateDepositRequest> _validator;
     private readonly IAuthorizationFacade _authorizationFacade;
     private readonly IDepositRepository _depositRepository;
     private readonly IAccountRepository _accountRepository;
@@ -16,11 +18,13 @@ public class DepositAccountService
     public DepositAccountService(
         IDepositRepository depositRepository,
         IAccountRepository accountRepository,
-        IAuthorizationFacade authorizationFacade)
+        IAuthorizationFacade authorizationFacade,
+        IValidator<UpdateDepositRequest> validator)
     {
         _depositRepository = depositRepository;
         _accountRepository = accountRepository;
         _authorizationFacade = authorizationFacade;
+        _validator = validator;
     }
 
     public async Task<ErrorOr<ActivesDepositAccount>> GetDeposit(string depositId)
@@ -73,6 +77,13 @@ public class DepositAccountService
 
     public async Task<ErrorOr<ActivesDepositAccount>> UpdateDeposit(string depositId, UpdateDepositRequest newDeposit)
     {
+
+        var validatorResult = await Validate<UpdateDepositRequest>(_validator, newDeposit);
+
+        if (validatorResult.IsError)
+        {
+            return validatorResult.Errors;
+        }
 
         var depositAccount = await GetDeposit(depositId);
 

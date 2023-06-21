@@ -22,11 +22,16 @@ public class BankController : BaseController
     }
 
     [AuthorizeRole(Role.ADMIN)]
-    [HttpPost]
-    public async Task<ActionResult<string>> CreateBank([FromBody] RegisterBankRequest request)
+    [HttpPost("create")]
+    public async Task<ActionResult<SimpleResponse>> CreateBank([FromBody] RegisterBankRequest request)
     {
-        await _bankService.CreateBank(request);
-        return Ok(new SimpleResponse("Banco registado!"));
+        var result = await _bankService.CreateBank(request);
+
+        return result.Match(
+            result => Ok(new SimpleResponse(result)),
+            errors => Problem<SimpleResponse>(errors)
+        );
+
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]

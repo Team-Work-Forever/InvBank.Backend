@@ -1,4 +1,5 @@
 using InvBank.Backend.Application.Common.Providers;
+using InvBank.Backend.Contracts;
 using InvBank.Backend.Domain.Entities;
 using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Authorization;
@@ -57,7 +58,7 @@ public class AuthorizeRole : AuthorizeAttribute, IAuthorizationFilter
     private async Task UnauthorizedResponseAsync(AuthorizationFilterContext context)
     {
         context.Result = new StatusCodeResult(StatusCodes.Status401Unauthorized);
-        await context.HttpContext.Response.WriteAsync("Não tens permissão para executar esta ação");
+        await context.HttpContext.Response.WriteAsJsonAsync(new SimpleResponse("Não tens permissão para executar esta ação"));
     }
 
 }

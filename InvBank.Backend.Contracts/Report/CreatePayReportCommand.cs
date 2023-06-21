@@ -2,7 +2,7 @@ namespace InvBank.Backend.Contracts.Report;
 
 public record CreatePayReportCommand
 (
-    DateOnly InitialDate,
-    DateOnly EndDate,
+    string InitialDate,
+    string EndDate,
     string Iban
 );

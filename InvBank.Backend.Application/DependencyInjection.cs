@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using InvBank.Backend.Application.Services;
+﻿using InvBank.Backend.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InvBank.Backend.Application;

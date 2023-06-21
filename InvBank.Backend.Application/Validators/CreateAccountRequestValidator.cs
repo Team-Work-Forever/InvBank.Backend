@@ -8,7 +8,8 @@ public class CreateAccountRequestValidator : AbstractValidator<CreateAccountRequ
 
     public CreateAccountRequestValidator()
     {
-        RuleFor(request => request.iban).Length(9);
+        RuleFor(request => request.iban).Length(28)
+            .WithMessage("Por favor indique um IBAN com 28 dígitos");
     }
 
 }

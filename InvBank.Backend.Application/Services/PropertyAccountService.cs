@@ -1,4 +1,5 @@
 using ErrorOr;
+using FluentValidation;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Contracts.PropertyAccount;
@@ -7,8 +8,9 @@ using InvBank.Backend.Domain.Errors;
 
 namespace InvBank.Backend.Application.Services;
 
-public class PropertyAccountService
+public class PropertyAccountService : BaseService
 {
+    private readonly IValidator<CreatePropertyAccountRequest> _validator;
     private readonly IAuthorizationFacade _authorizationFacade;
     private readonly IDateFormatter _dateFormatter;
     private readonly IAccountRepository _accountRepository;
@@ -18,16 +20,25 @@ public class PropertyAccountService
         IPropertyAccountRepository propertyAccountRepository,
         IAccountRepository accountRepository,
         IDateFormatter dateFormatter,
-        IAuthorizationFacade authorizationFacade)
+        IAuthorizationFacade authorizationFacade,
+        IValidator<CreatePropertyAccountRequest> validator)
     {
         _propertyAccountRepository = propertyAccountRepository;
         _accountRepository = accountRepository;
         _dateFormatter = dateFormatter;
         _authorizationFacade = authorizationFacade;
+        _validator = validator;
     }
 
     public async Task<ErrorOr<ActivesProperty>> CreatePropertyAccount(CreatePropertyAccountRequest request)
     {
+
+        var validationResult = await Validate<CreatePropertyAccountRequest>(_validator, request);
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
 
         var auth = await _authorizationFacade.GetAuthenticatedUser();
 

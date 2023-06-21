@@ -7,6 +7,6 @@ public interface IBankRepository
     Task<Bank?> GetBank(string iban);
     Task<IEnumerable<Bank>> GetAllBanks();
     Task<int> UpdateBank(Bank bank);
-    Task CreateBank(Bank bank);
+    Task<int> CreateBank(Bank bank);
 
 }

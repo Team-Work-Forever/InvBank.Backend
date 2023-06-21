@@ -10,10 +10,10 @@ public class BankRepository : BaseRepository, IBankRepository
     {
     }
 
-    public async Task CreateBank(Bank bank)
+    public async Task<int> CreateBank(Bank bank)
     {
         _dbContext.Banks.Add(bank);
-        await _dbContext.SaveChangesAsync();
+        return await _dbContext.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Bank>> GetAllBanks()

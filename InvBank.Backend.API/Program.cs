@@ -3,6 +3,7 @@ using InvBank.Backend.Application;
 using InvBank.Backend.API.Mappers;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using InvBank.Backend.Application.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 {
@@ -46,6 +47,7 @@ var builder = WebApplication.CreateBuilder(args);
         .AddApplication()
         .AddInfraStructure()
         .AddMapper()
+        .AddValidators()
         .AddHttpContextAccessor();
 
     builder.Services.AddAuth(builder.Configuration);

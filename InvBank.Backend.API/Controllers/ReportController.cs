@@ -26,15 +26,18 @@ public class ReportController : BaseController
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("profit")]
-    public async Task<ActionResult<string>> GenerateReportProfit(CreatePayReportRequest request)
+    public async Task<ActionResult<ProfitReportResponse>> GenerateReportProfit(CreatePayReportRequest request)
     {
-        ProfitReportResponse profitReportResponse = await _reportService.GenerateReportProfit(
+        var profitReportResponse = await _reportService.GenerateReportProfit(
              new CreateProfitReportRequest(
-                 _dateFormatter.ConvertToDateTime(request.InitialDate),
-                 _dateFormatter.ConvertToDateTime(request.EndDate)
+                request.InitialDate,
+                request.EndDate
              ));
 
-        return Ok(profitReportResponse);
+        return profitReportResponse.Match(
+            profitReportResponse => Ok(profitReportResponse),
+            errors => Problem<ProfitReportResponse>(errors)
+        );
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
@@ -43,8 +46,8 @@ public class ReportController : BaseController
     {
         var payReportResult = await _reportService.GenerateReportPay(
              new CreatePayReportCommand(
-                _dateFormatter.ConvertToDateTime(request.InitialDate),
-                _dateFormatter.ConvertToDateTime(request.EndDate),
+                request.InitialDate,
+                request.EndDate,
                 iban
              ));
 

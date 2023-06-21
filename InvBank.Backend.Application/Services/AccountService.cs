@@ -1,4 +1,5 @@
 using ErrorOr;
+using FluentValidation;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Contracts.Account;
@@ -7,8 +8,9 @@ using InvBank.Backend.Domain.Errors;
 
 namespace InvBank.Backend.Application.Services;
 
-public class AccountService
+public class AccountService : BaseService
 {
+    private readonly IValidator<CreateAccountRequest> _validator;
     private readonly IUserRepository _userRepository;
     private readonly IAuthorizationFacade _authorizationFacade;
     private readonly IIBANGenerator _ibanGenerator;
@@ -20,17 +22,26 @@ public class AccountService
         IBankRepository bankRepository,
         IIBANGenerator ibanGenerator,
         IAuthorizationFacade authorizationFacade,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IValidator<CreateAccountRequest> validator)
     {
         _accountRepository = accountRepository;
         _bankRepository = bankRepository;
         _ibanGenerator = ibanGenerator;
         _authorizationFacade = authorizationFacade;
         _userRepository = userRepository;
+        _validator = validator;
     }
 
     public async Task<ErrorOr<Account>> CreateAccount(CreateAccountRequest request)
     {
+
+        var validationResult = await Validate<CreateAccountRequest>(_validator, request);
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
 
         // Get User
         var auth = await _authorizationFacade.GetAuthenticatedUser();
@@ -64,6 +75,14 @@ public class AccountService
 
     public async Task<ErrorOr<int>> DeleteAccount(string iban)
     {
+
+        var validationResult = await Validate<CreateAccountRequest>(_validator, new CreateAccountRequest(iban));
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
+
         ErrorOr<Account> accountResult = await GetAccount(iban);
 
         if (accountResult.IsError)
@@ -76,6 +95,13 @@ public class AccountService
 
     public async Task<ErrorOr<Account>> GetAccount(string iban)
     {
+
+        var validationResult = await Validate<CreateAccountRequest>(_validator, new CreateAccountRequest(iban));
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
 
         var auth = await _authorizationFacade.GetAuthenticatedUser();
 
