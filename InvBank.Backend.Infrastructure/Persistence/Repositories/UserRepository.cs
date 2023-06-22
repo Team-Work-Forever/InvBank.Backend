@@ -46,4 +46,12 @@ public class UserRepository : IUserRepository
 
     }
 
+    public async Task<IEnumerable<Profile>> GetAllClients()
+    {
+        return await _dbContext
+            .Profiles
+            .Where(prof => prof.IdNavigation.UserRole == 0)
+            .Include(prof => prof.IdNavigation)
+            .ToListAsync();
+    }
 }

@@ -18,15 +18,13 @@ namespace InvBank.Backend.API.Controllers;
 [AllowAnonymous]
 public class AuthenticationController : BaseController
 {
-    private readonly ProfileService _profileService;
     private readonly IMapper _mapper;
     private readonly ISender _mediator;
 
-    public AuthenticationController(ISender mediator, IMapper mapper, ProfileService profileService)
+    public AuthenticationController(ISender mediator, IMapper mapper)
     {
         _mediator = mediator;
         _mapper = mapper;
-        _profileService = profileService;
     }
 
     [HttpPost("login")]
@@ -71,20 +69,6 @@ public class AuthenticationController : BaseController
             authResult => Ok(authResult),
             firstError => Problem<AuthenticationResult>(firstError)
         );
-    }
-
-    [Authorize]
-    [HttpPost("profile")]
-    public async Task<ActionResult<ProfileResponse>> GetProfile()
-    {
-
-        var profileResponse = await _profileService.GetProfile();
-
-        return profileResponse.Match(
-            profileResponse => Ok(_mapper.Map<ProfileResponse>(profileResponse)),
-            firstError => Problem<ProfileResponse>(firstError)
-        );
-
     }
 
 }
