@@ -13,7 +13,7 @@ public class IBANGenerator : IIBANGenerator
 
     public string GenerateIBAN()
     {
-        return portugalCountryCode + " " + idBankCode + " " + pspIdentifier + " " + GenerateRandomNumber(11) + " " + NIBControl;
+        return portugalCountryCode + " " + idBankCode + " " + pspIdentifier + " " + GenerateRandomNumber(13) + " " + NIBControl;
     }
 
     private string GenerateRandomNumber(int legth)

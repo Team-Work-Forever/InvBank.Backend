@@ -1,6 +1,4 @@
-﻿
-
-namespace InvBank.Backend.Domain.Entities;
+﻿namespace InvBank.Backend.Domain.Entities;
 
 public partial class Auth
 {

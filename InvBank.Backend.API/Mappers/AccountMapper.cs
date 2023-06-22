@@ -13,6 +13,7 @@ public class AccountMapper : AutoMapper.Profile
             .ConstructUsing(acc => new AccountResponse(
                 acc.Iban,
                 acc.Bank,
+                acc.AmountValue,
                 acc.ActivesDepositAccounts.Select(da =>
                     new DepositResponse(
                         da.Id,

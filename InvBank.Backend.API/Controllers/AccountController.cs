@@ -1,5 +1,6 @@
 using AutoMapper;
 using ErrorOr;
+using InvBank.Backend.Application.Common;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Account;
@@ -32,7 +33,18 @@ public class AccountController : BaseController
             createResult => Ok(_mapper.Map<AccountResponse>(createResult)),
             firstError => Problem<AccountResponse>(firstError)
         );
+    }
 
+    [AuthorizeRole(Role.CLIENT)]
+    [HttpPost("make/transfer")]
+    public async Task<ActionResult<SimpleResponse>> MakeTransfer([FromQuery] string accountIban, MakeTransferRequest request)
+    {
+        var transferResult = await _accountService.MakeRequest(new MakeTransfer(accountIban, request.amountValue));
+
+        return transferResult.Match(
+            transferResult => Ok(new SimpleResponse(transferResult)),
+            firstError => Problem<SimpleResponse>(firstError)
+        );
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]

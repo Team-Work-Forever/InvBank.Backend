@@ -1,7 +1,9 @@
 using ErrorOr;
 using FluentValidation;
+using InvBank.Backend.Application.Common;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
+using InvBank.Backend.Application.Config;
 using InvBank.Backend.Contracts.Account;
 using InvBank.Backend.Domain.Entities;
 using InvBank.Backend.Domain.Errors;
@@ -10,6 +12,7 @@ namespace InvBank.Backend.Application.Services;
 
 public class AccountService : BaseService
 {
+    private readonly IValidator<MakeTransfer> _validatorMakeTransfer;
     private readonly IValidator<CreateAccountRequest> _validator;
     private readonly IUserRepository _userRepository;
     private readonly IAuthorizationFacade _authorizationFacade;
@@ -23,7 +26,8 @@ public class AccountService : BaseService
         IIBANGenerator ibanGenerator,
         IAuthorizationFacade authorizationFacade,
         IUserRepository userRepository,
-        IValidator<CreateAccountRequest> validator)
+        IValidator<CreateAccountRequest> validator,
+        IValidator<MakeTransfer> validatorMakeTransfer)
     {
         _accountRepository = accountRepository;
         _bankRepository = bankRepository;
@@ -31,6 +35,7 @@ public class AccountService : BaseService
         _authorizationFacade = authorizationFacade;
         _userRepository = userRepository;
         _validator = validator;
+        _validatorMakeTransfer = validatorMakeTransfer;
     }
 
     public async Task<ErrorOr<Account>> CreateAccount(CreateAccountRequest request)
@@ -134,4 +139,27 @@ public class AccountService : BaseService
         return (await _accountRepository.GetAllAccounts(auth.Value)).ToList();
     }
 
+    public async Task<ErrorOr<string>> MakeRequest(MakeTransfer request)
+    {
+
+        var validationResult = await Validate<MakeTransfer>(_validatorMakeTransfer, request);
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
+
+        ErrorOr<Account> findAccount = await GetAccount(request.AccountIban);
+
+        if (findAccount.IsError)
+        {
+            return findAccount.Errors;
+        }
+
+        findAccount.Value.AmountValue += request.AmountValue * (1 + BankComission.DepositCommission);
+        await _accountRepository.UpdateAccount(findAccount.Value);
+
+        return $"A transferencia de {request.AmountValue} u.m. foi realizada com sucesso!";
+
+    }
 }

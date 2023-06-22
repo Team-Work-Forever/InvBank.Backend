@@ -1,3 +1,4 @@
+
 using InvBank.Backend.Domain.Entities;
 
 namespace InvBank.Backend.Application.Common.Interfaces;

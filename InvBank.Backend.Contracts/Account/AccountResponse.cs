@@ -7,6 +7,7 @@ public record AccountResponse
 (
     string IBAN,
     string Bank,
+    decimal AmountValue,
     IEnumerable<DepositResponse> deposits,
     IEnumerable<PropertyAccountResponse> properties
 );
