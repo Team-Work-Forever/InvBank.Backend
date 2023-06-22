@@ -76,10 +76,11 @@ public class DepositRepository : BaseRepository, IDepositRepository
 
     public async Task PayDepositValue(Guid depositId, decimal amount)
     {
-        
+
         _dbContext
             .PaymentDeposits
-            .Add( new PaymentDeposit {
+            .Add(new PaymentDeposit
+            {
                 AtiveId = depositId,
                 PaymentDate = DateOnly.FromDateTime(DateTime.Now),
                 Amount = amount

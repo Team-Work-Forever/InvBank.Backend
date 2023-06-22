@@ -29,18 +29,16 @@ public class DepositController : BaseController
         _mapper = mapper;
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> RegisterDepositAccount([FromBody] CreateDepositRequest request)
     {
-
         var result = await _mediator.Send(_mapper.Map<CreateDepositCommand>(request));
 
         return result.Match(
             result => Ok(new SimpleResponse(result)),
             firstError => Problem<SimpleResponse>(firstError)
         );
-
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
@@ -80,7 +78,7 @@ public class DepositController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER)]
     [HttpPut("update")]
     public async Task<ActionResult<SimpleResponse>> UpdateDeposit([FromQuery] string depositIban, [FromBody] UpdateDepositRequest request)
     {
@@ -92,7 +90,7 @@ public class DepositController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeleteDeposit([FromQuery] string depositIban)
     {

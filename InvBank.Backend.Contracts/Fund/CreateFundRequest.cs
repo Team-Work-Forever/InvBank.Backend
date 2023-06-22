@@ -9,3 +9,4 @@ public record CreateFundRequest
     decimal TaxPercent,
     string Account
 );
+

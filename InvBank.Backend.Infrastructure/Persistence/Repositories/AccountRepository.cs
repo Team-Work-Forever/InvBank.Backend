@@ -13,7 +13,8 @@ public class AccountRepository : BaseRepository, IAccountRepository
     public async Task<Account?> GetAccount(Auth user, string IBAN)
     {
         return await _dbContext.AuthAccounts
-            .Where(ac => ac.Auth == user.Id && ac.Account == IBAN)
+            .Where(ac => ac.Account == IBAN)
+            .Where(ac => ac.Auth == user.Id || user.UserRole != 0)
             .Select(ac => ac.AccountNavigation)
             .FirstOrDefaultAsync();
     }
@@ -21,7 +22,7 @@ public class AccountRepository : BaseRepository, IAccountRepository
     public async Task<IEnumerable<Account>> GetAllAccounts(Auth user)
     {
         return await _dbContext.AuthAccounts
-            .Where(ac => ac.Auth == user.Id)
+            .Where(ac => ac.Auth == user.Id || user.UserRole != 0)
             .Include(ac => ac.AccountNavigation.ActivesDepositAccounts)
             .Include(ac => ac.AccountNavigation.ActivesProperties)
             .Select(ac => ac.AccountNavigation)

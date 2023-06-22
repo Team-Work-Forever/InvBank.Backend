@@ -69,7 +69,12 @@ public class FundService : BaseService
             return findAccount.Errors;
         }
 
-        return await _fundRepository.CreateFund(findAccount.Value,
+        if (request.Value >= findAccount.Value.AmountValue)
+        {
+            return Errors.Fund.FundAmountGreater;
+        }
+
+        var result = await _fundRepository.CreateFund(findAccount.Value,
             new ActivesInvestmentFund
             {
                 InvestName = request.Name,
@@ -79,6 +84,10 @@ public class FundService : BaseService
                 TaxPercent = request.TaxPercent
             }, request.Value);
 
+        findAccount.Value.AmountValue -= request.Value;
+        await _accountRepository.UpdateAccount(findAccount.Value);
+
+        return result;
     }
 
     public async Task<ErrorOr<IEnumerable<ActivesInvestmentFund>>> GetFundsOfAccount(string iban)

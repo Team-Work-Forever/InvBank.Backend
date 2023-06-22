@@ -27,11 +27,7 @@ public class CreateDepositValidator : AbstractValidator<CreateDepositCommand>
            .WithMessage("Por favor indique uma taxa diferente de 0%");
 
         RuleFor(request => request.Value)
-          .NotEqual(0)
-          .WithMessage("Por favor indique uma valor maior que 0 u.m");
-
-        RuleFor(request => request.Value)
-            .GreaterThan(0)
+            .GreaterThan(-1)
             .WithMessage("Por favor indique uma valor positivo");
 
         RuleFor(request => request.YearlyTax)

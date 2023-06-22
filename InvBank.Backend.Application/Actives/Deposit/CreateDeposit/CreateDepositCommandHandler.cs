@@ -55,6 +55,11 @@ public class CreateDepositCommandHandler : BaseService, IRequestHandler<CreateDe
             return Errors.Account.AccountNotFound;
         }
 
+        if (request.Value > findAccount.AmountValue)
+        {
+            return Errors.Deposit.DepositAmountGreater;
+        }
+
         await _depositRepository.CreateDepositActive(findAccount, new ActivesDepositAccount
         {
             DepositName = request.Name,
@@ -64,6 +69,9 @@ public class CreateDepositCommandHandler : BaseService, IRequestHandler<CreateDe
             YearlyTax = request.YearlyTax,
             Duration = request.Duration,
         });
+
+        findAccount.AmountValue -= request.Value;
+        await _accountRepository.UpdateAccount(findAccount);
 
         return "Deposito Registado!";
 

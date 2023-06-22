@@ -35,7 +35,7 @@ public class AccountController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPost("make/transfer")]
     public async Task<ActionResult<SimpleResponse>> MakeTransfer([FromQuery] string accountIban, MakeTransferRequest request)
     {

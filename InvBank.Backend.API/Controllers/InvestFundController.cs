@@ -2,7 +2,6 @@ using AutoMapper;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Fund;
-using InvBank.Backend.Domain.Entities;
 using InvBank.Backend.Infrastructure.Authentication;
 using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +21,7 @@ public class InvestFundController : BaseController
         _mapper = mapper;
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> CreateInvestFund([FromBody] CreateFundRequest request)
     {

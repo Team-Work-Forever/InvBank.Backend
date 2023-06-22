@@ -156,7 +156,7 @@ public class AccountService : BaseService
             return findAccount.Errors;
         }
 
-        findAccount.Value.AmountValue += request.AmountValue * (1 + BankComission.DepositCommission);
+        findAccount.Value.AmountValue += request.AmountValue / (1 + BankComission.DepositCommission);
         await _accountRepository.UpdateAccount(findAccount.Value);
 
         return $"A transferencia de {request.AmountValue} u.m. foi realizada com sucesso!";
