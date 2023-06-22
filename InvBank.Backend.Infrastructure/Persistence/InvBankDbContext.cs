@@ -62,6 +62,8 @@ public partial class InvBankDbContext : DbContext
             entity.Property(e => e.Bank)
                 .HasMaxLength(35)
                 .HasColumnName("bank");
+            entity.Property(e => e.AmountValue)
+                .HasColumnName("amount_value");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("created_at");

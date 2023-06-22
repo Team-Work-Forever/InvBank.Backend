@@ -12,7 +12,9 @@ public class BankService : BaseService
     private readonly IValidator<RegisterBankRequest> _validator;
     private readonly IBankRepository _bankRepository;
 
-    public BankService(IBankRepository bankRepository, IValidator<RegisterBankRequest> validator)
+    public BankService(
+        IBankRepository bankRepository,
+        IValidator<RegisterBankRequest> validator)
     {
         _bankRepository = bankRepository;
         _validator = validator;

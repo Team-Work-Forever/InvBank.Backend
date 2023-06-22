@@ -4,6 +4,8 @@ public partial class Account
 {
     public string Iban { get; set; } = null!;
 
+    public decimal AmountValue { get; set; }
+
     public string Bank { get; set; } = null!;
 
     public DateOnly CreatedAt { get; set; }

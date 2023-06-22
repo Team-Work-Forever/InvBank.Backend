@@ -1,9 +1,6 @@
 using InvBank.Backend.Application.Common.Providers;
-using InvBank.Backend.Contracts;
-using InvBank.Backend.Domain.Entities;
 using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -20,14 +17,14 @@ public class AuthorizeRole : AuthorizeAttribute, IAuthorizationFilter
         _roles = roles.Select(role => ((int)role).ToString());
     }
 
-    public async void OnAuthorization(AuthorizationFilterContext context)
+    public void OnAuthorization(AuthorizationFilterContext context)
     {
 
         var jwtModifier = context.HttpContext.RequestServices.GetService(typeof(IJWTModifier)) as IJWTModifier;
 
         if (jwtModifier is null)
         {
-            await UnauthorizedResponseAsync(context);
+            UnauthorizedResponseAsync(context);
             return;
         }
 
@@ -35,7 +32,7 @@ public class AuthorizeRole : AuthorizeAttribute, IAuthorizationFilter
 
         if (string.IsNullOrEmpty(authorizationHeader) || !authorizationHeader.StartsWith("Bearer "))
         {
-            await UnauthorizedResponseAsync(context);
+            UnauthorizedResponseAsync(context);
             return;
         }
 
@@ -43,22 +40,21 @@ public class AuthorizeRole : AuthorizeAttribute, IAuthorizationFilter
 
         if (!claims.TryGetValue("role", out var role))
         {
-            await UnauthorizedResponseAsync(context);
+            UnauthorizedResponseAsync(context);
             return;
         }
 
         if (!_roles.Contains(role))
         {
-            await UnauthorizedResponseAsync(context);
+            UnauthorizedResponseAsync(context);
             return;
         }
 
     }
 
-    private async Task UnauthorizedResponseAsync(AuthorizationFilterContext context)
+    private void UnauthorizedResponseAsync(AuthorizationFilterContext context)
     {
-        context.Result = new StatusCodeResult(StatusCodes.Status401Unauthorized);
-        await context.HttpContext.Response.WriteAsJsonAsync(new SimpleResponse("Não tens permissão para executar esta ação"));
+        context.Result = new UnauthorizedResult();
     }
 
 }

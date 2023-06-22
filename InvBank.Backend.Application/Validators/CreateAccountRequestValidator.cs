@@ -5,11 +5,10 @@ namespace InvBank.Backend.Application.Validators;
 
 public class CreateAccountRequestValidator : AbstractValidator<CreateAccountRequest>
 {
-
     public CreateAccountRequestValidator()
     {
-        RuleFor(request => request.iban).Length(28)
-            .WithMessage("Por favor indique um IBAN com 28 dígitos");
+        RuleFor(request => request.iban)
+            .Length(30)
+            .WithMessage("Por favor indique um IBAN com 30 dígitos");
     }
-
 }

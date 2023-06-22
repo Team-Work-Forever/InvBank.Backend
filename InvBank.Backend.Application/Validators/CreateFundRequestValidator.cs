@@ -8,8 +8,8 @@ public class CreateFundRequestValidator : AbstractValidator<CreateFundRequest>
 {
     public CreateFundRequestValidator()
     {
-        RuleFor(request => request.Account).Length(28)
-            .WithMessage("Por favor indique um IBAN com 28 dígitos");
+        RuleFor(request => request.Account).Length(30)
+            .WithMessage("Por favor indique um IBAN com 30 dígitos");
 
         RuleFor(request => request.InitialDate)
             .Must(ValidateUtils.MustBeDate)

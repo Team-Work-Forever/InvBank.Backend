@@ -8,8 +8,8 @@ public class RegisterBankRequestValidator : AbstractValidator<RegisterBankReques
 
     public RegisterBankRequestValidator()
     {
-        RuleFor(request => request.Iban).Length(28)
-            .WithMessage("Por favor indique um IBAN com 28 dígitos");
+        RuleFor(request => request.Iban).Length(30)
+            .WithMessage("Por favor indique um IBAN com 30 dígitos");
         RuleFor(request => request.Phone)
             .Length(9)
             .Matches("^\\(?([0-9]{3})\\)?[-. ]?([0-9]{3})[-. ]?([0-9]{3})$")

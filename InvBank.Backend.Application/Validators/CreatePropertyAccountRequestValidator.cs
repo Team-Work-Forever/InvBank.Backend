@@ -71,7 +71,7 @@ public class CreatePropertyAccountRequestValidator : AbstractValidator<CreatePro
             .Matches("^\\d{4}-\\d{3}$")
             .WithMessage("Por favor indique um codigo postal válido");
 
-        RuleFor(request => request.AccountIBAN).Length(28)
-           .WithMessage("Por favor indique um IBAN com 28 dígitos");
+        RuleFor(request => request.AccountIBAN).Length(30)
+           .WithMessage("Por favor indique um IBAN com 30 dígitos");
     }
 }
