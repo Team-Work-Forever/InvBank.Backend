@@ -47,4 +47,28 @@ public class JWTModifier : IJWTModifier
             .Select(claim => new KeyValuePair<string, string>(claim.Type, claim.Value))
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
+
+    public async Task<bool> ValidateTokenAsync(string token)
+    {
+        return (await new JwtSecurityTokenHandler()
+            .ValidateTokenAsync(
+                token,
+                GetTokenValidationParameters()
+            )).IsValid;
+    }
+
+    private TokenValidationParameters GetTokenValidationParameters()
+    {
+        return new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = _jwtConfiguration.Issuer,
+            ValidAudience = _jwtConfiguration.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfiguration.Secret))
+        };
+    }
+
 }

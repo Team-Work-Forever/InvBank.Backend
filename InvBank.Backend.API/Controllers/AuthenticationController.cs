@@ -3,6 +3,7 @@ using ErrorOr;
 using InvBank.Backend.Application.Authentication.Commands.RegisterClient;
 using InvBank.Backend.Application.Authentication.Commands.RegisterCompany;
 using InvBank.Backend.Application.Authentication.Queries.Login;
+using InvBank.Backend.Application.Authentication.Queries.TokenQuerie;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Authentication;
@@ -58,6 +59,17 @@ public class AuthenticationController : BaseController
         return authResult.Match(
             authResult => Ok(new SimpleResponse(authResult)),
             firstError => Problem<SimpleResponse>(firstError)
+        );
+    }
+
+    [HttpGet("refreshToken")]
+    public async Task<ActionResult<AuthenticationResult>> GetNewTokens([FromQuery] string token)
+    {
+        ErrorOr<AuthenticationResult> authResult = await _mediator.Send(new TokenQuerie(token));
+
+        return authResult.Match(
+            authResult => Ok(authResult),
+            firstError => Problem<AuthenticationResult>(firstError)
         );
     }
 
