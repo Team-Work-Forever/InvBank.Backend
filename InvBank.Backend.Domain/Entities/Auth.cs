@@ -12,6 +12,12 @@ public partial class Auth
 
     public int UserRole { get; set; }
 
+    public DateOnly CreatedAt { get; set; }
+
+    public DateOnly UpdatedAt { get; set; }
+
+    public DateOnly? DeletedAt { get; set; }
+
     public virtual ICollection<AuthAccount> AuthAccounts { get; set; } = new List<AuthAccount>();
 
     public virtual Company? Company { get; set; }

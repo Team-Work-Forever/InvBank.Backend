@@ -4,7 +4,6 @@ using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Authentication;
 using InvBank.Backend.Contracts.User;
 using InvBank.Backend.Infrastructure.Authentication;
-using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -72,7 +71,7 @@ public class UsersController : BaseController
     }
 
     [AuthorizeRole(Role.ADMIN)]
-    [HttpPut("delete")]
+    [HttpPut("update")]
     public async Task<ActionResult<ProfileResponse>> UpdateUser([FromQuery] Guid id, [FromQuery] UpdateUserByRoleRequest request)
     {
         var profileResponse = await _userService.UpdateUser(id, request);

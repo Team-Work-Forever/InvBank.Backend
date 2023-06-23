@@ -315,6 +315,13 @@ public partial class InvBankDbContext : DbContext
             entity.Property(e => e.UserRole)
                 .HasDefaultValueSql("0")
                 .HasColumnName("user_role");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("updated_at");
         });
 
         modelBuilder.Entity<AuthAccount>(entity =>

@@ -28,7 +28,7 @@ public class UserService : BaseService
         _dateFormatter = dateFormatter;
     }
 
-    public async Task<ErrorOr<Tuple<Profile, string>>> GetProfile()
+    public async Task<ErrorOr<Auth>> GetProfile()
     {
         var auth = await _authorizationFacade.GetAuthenticatedUser();
 
@@ -37,27 +37,22 @@ public class UserService : BaseService
             return auth.Errors;
         }
 
-        var profile = await _userRepository.GetProfileByEmail(auth.Value.Email);
+        var profile = await _userRepository.GetUserAuth(auth.Value.Email);
 
         if (profile is null)
         {
             return Errors.Profile.ProfileNotFound;
         }
 
-        return new Tuple<Profile, string>(profile, auth.Value.Email);
+        return profile;
     }
 
-    public async Task<ErrorOr<IEnumerable<Tuple<Profile, string>>>> GetAllClients()
+    public async Task<ErrorOr<IEnumerable<Auth>>> GetAllClients()
     {
-        IEnumerable<Profile> clients = await _userRepository.GetAllClients();
-
-        return clients
-            .Select(client =>
-                new Tuple<Profile, string>(client, client.IdNavigation.Email))
-                .ToList();
+        return (await _userRepository.GetAllClients()).ToList();
     }
 
-    public async Task<ErrorOr<Tuple<Profile, string>>> CreateUserByRole(CreateUserByRoleRequest request)
+    public async Task<ErrorOr<Auth>> CreateUserByRole(CreateUserByRoleRequest request)
     {
         var validationResult = await Validate<CreateUserByRoleRequest>(_validator, request);
 
@@ -82,7 +77,7 @@ public class UserService : BaseService
             }
         };
 
-        return new Tuple<Profile, string>(user.Profile, user.Email);
+        return user;
     }
 
     public async Task<ErrorOr<string>> DeleteUser(Guid id)
@@ -101,7 +96,7 @@ public class UserService : BaseService
 
     }
 
-    public async Task<ErrorOr<Tuple<Profile, string>>> UpdateUser(Guid id, UpdateUserByRoleRequest request)
+    public async Task<ErrorOr<Auth>> UpdateUser(Guid id, UpdateUserByRoleRequest request)
     {
 
         Auth? auth = await _userRepository.GetUserAuth(id);
@@ -126,17 +121,14 @@ public class UserService : BaseService
         auth.Profile.Phone = request.Phone;
 
         await _userRepository.UpdateAuth(auth);
-        return new Tuple<Profile, string>(auth.Profile, auth.Email);
+        return auth;
 
     }
 
-    public async Task<ErrorOr<IEnumerable<Tuple<Profile, string>>>> GetAllWorkingUsers()
+    public async Task<ErrorOr<IEnumerable<Auth>>> GetAllWorkingUsers()
     {
         IEnumerable<Auth> users = await _userRepository.GetAllUsers();
 
-        return users
-            .Where(user => user.UserRole != ((int)AuthorizationRole.ADMIN))
-            .Select(user => new Tuple<Profile, string>(user.Profile, user.Email))
-            .ToList();
+        return users.ToList();
     }
 }

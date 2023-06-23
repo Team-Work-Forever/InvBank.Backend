@@ -10,5 +10,6 @@ public record ProfileResponse
     string Nif,
     string Cc,
     string Phone,
-    string PostalCode
+    string PostalCode,
+    int UserRole
 );

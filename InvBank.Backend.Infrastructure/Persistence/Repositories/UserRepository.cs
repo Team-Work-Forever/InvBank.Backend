@@ -22,12 +22,20 @@ public class UserRepository : IUserRepository
 
     public async Task<Profile?> GetProfileByEmail(string email)
     {
-        return await _dbContext.Profiles.Where(prof => prof.IdNavigation.Email == email).FirstAsync();
+        return await _dbContext
+            .Profiles
+            .Where(prof => prof.IdNavigation.Email == email)
+            .Where(prof => prof.DeletedAt == null)
+            .FirstAsync();
     }
 
     public async Task<Auth?> GetUserAuth(string email)
     {
-        return await _dbContext.Auths.Where(auth => auth.Email == email).FirstOrDefaultAsync();
+        return await _dbContext
+            .Auths
+            .Include(auth => auth.Profile)
+            .Where(auth => auth.Email == email)
+            .FirstOrDefaultAsync();
     }
 
     public async Task AssociateAccount(Auth user, Account account)
@@ -46,12 +54,13 @@ public class UserRepository : IUserRepository
 
     }
 
-    public async Task<IEnumerable<Profile>> GetAllClients()
+    public async Task<IEnumerable<Auth>> GetAllClients()
     {
         return await _dbContext
-            .Profiles
-            .Where(prof => prof.IdNavigation.UserRole == 0)
-            .Include(prof => prof.IdNavigation)
+            .Auths
+            .Include(auth => auth.Profile)
+            .Where(auth => auth.UserRole == 0)
+            .Where(auth => auth.DeletedAt == null)
             .ToListAsync();
     }
 
@@ -59,7 +68,9 @@ public class UserRepository : IUserRepository
     {
         return await _dbContext
             .Auths
+            .Include(auth => auth.Profile)
             .Where(auth => auth.Id == id)
+            .Where(auth => auth.DeletedAt == null)
             .FirstOrDefaultAsync();
     }
 
@@ -83,7 +94,7 @@ public class UserRepository : IUserRepository
             return;
         }
 
-        authFind.Profile.DeletedAt = DateOnly.FromDateTime(DateTime.Now);
+        authFind.DeletedAt = DateOnly.FromDateTime(DateTime.Now);
 
         await UpdateAuth(authFind);
         await _dbContext.SaveChangesAsync();
@@ -94,6 +105,7 @@ public class UserRepository : IUserRepository
         return await _dbContext
             .Auths
             .Include(a => a.Profile)
+            .Where(a => a.DeletedAt == null)
             .ToListAsync();
     }
 }
