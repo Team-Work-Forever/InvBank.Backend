@@ -54,4 +54,46 @@ public class UserRepository : IUserRepository
             .Include(prof => prof.IdNavigation)
             .ToListAsync();
     }
+
+    public async Task<Auth?> GetUserAuth(Guid id)
+    {
+        return await _dbContext
+            .Auths
+            .Where(auth => auth.Id == id)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<Auth> UpdateAuth(Auth auth)
+    {
+        _dbContext.Update<Auth>(auth);
+        await _dbContext.SaveChangesAsync();
+
+        return auth;
+    }
+
+    public async Task DeleteAuth(Auth auth)
+    {
+        var authFind = await _dbContext.Auths
+            .Where(ada => ada.Id == auth.Id)
+            .Include(a => a.Profile)
+            .FirstAsync();
+
+        if (authFind.Profile is null)
+        {
+            return;
+        }
+
+        authFind.Profile.DeletedAt = DateOnly.FromDateTime(DateTime.Now);
+
+        await UpdateAuth(authFind);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Auth>> GetAllUsers()
+    {
+        return await _dbContext
+            .Auths
+            .Include(a => a.Profile)
+            .ToListAsync();
+    }
 }

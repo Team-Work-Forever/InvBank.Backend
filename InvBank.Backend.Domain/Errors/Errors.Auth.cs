@@ -10,7 +10,10 @@ public static partial class Errors
             "Auth.DuplicatedEmail",
             "Este email já se encontra em uso");
 
-        public static Error IncorrentCredentials => Error.Failure(
+        public static Error AuthNotFoundById => Error.Conflict(
+                "Auth.AuthNotFoundById",
+                "Não existe nenhuma conta com esse id");
+        public static Error IncorrentCredentials => Error.Conflict(
                 "Auth.IncorrentCredentials",
                 "O email ou password estão errados!");
 

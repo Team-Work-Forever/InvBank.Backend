@@ -1,12 +1,12 @@
 using FluentValidation;
-using InvBank.Backend.Application.Authentication.Commands.RegisterClient;
 using InvBank.Backend.Application.Validators.Common;
+using InvBank.Backend.Contracts.User;
 
 namespace InvBank.Backend.Application.Validators;
 
-public class RegisterClientCommandValidator : AbstractValidator<RegisterClientCommand>
+public class CreateUserByRoleRequestValidator : AbstractValidator<CreateUserByRoleRequest>
 {
-    public RegisterClientCommandValidator()
+    public CreateUserByRoleRequestValidator()
     {
         RuleFor(request => request.Email)
             .EmailAddress()
@@ -40,9 +40,5 @@ public class RegisterClientCommandValidator : AbstractValidator<RegisterClientCo
         RuleFor(request => request.Phone)
             .Length(9)
             .WithMessage("Por favor indique um número de telefone válido");
-
-        RuleFor(request => request.Password.Length)
-            .InclusiveBetween(6, 16)
-            .WithMessage("Por favor indique uma palavra-passe entre 6 a 16 caracteres");
     }
 }

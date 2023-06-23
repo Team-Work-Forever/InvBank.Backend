@@ -5,7 +5,6 @@ using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Account;
 using InvBank.Backend.Infrastructure.Authentication;
-using InvBank.Backend.Infrastructure.Providers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InvBank.Backend.API.Controllers;

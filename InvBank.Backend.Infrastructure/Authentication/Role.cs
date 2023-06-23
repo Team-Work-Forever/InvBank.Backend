@@ -1,4 +1,4 @@
-namespace InvBank.Backend.Infrastructure.Providers;
+namespace InvBank.Backend.Infrastructure.Authentication;
 
 public enum Role
 {

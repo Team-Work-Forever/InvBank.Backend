@@ -16,5 +16,5 @@ public partial class Auth
 
     public virtual Company? Company { get; set; }
 
-    public virtual Profile? Profile { get; set; }
+    public virtual Profile Profile { get; set; } = null!;
 }

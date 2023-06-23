@@ -38,12 +38,10 @@ public class DepositRepository : BaseRepository, IDepositRepository
 
     public async Task<ActivesDepositAccount> UpdateDeposit(ActivesDepositAccount depositAccount)
     {
-
         _dbContext.Update<ActivesDepositAccount>(depositAccount);
         await _dbContext.SaveChangesAsync();
 
         return depositAccount;
-
     }
 
     public async Task<int> DeleteDeposit(Guid depositId)
