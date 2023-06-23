@@ -21,7 +21,7 @@ public class InvestFundController : BaseController
         _mapper = mapper;
     }
 
-    [AuthorizeRole(Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> CreateInvestFund([FromBody] CreateFundRequest request)
     {
@@ -33,7 +33,7 @@ public class InvestFundController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.CLIENT, Role.ADMIN)]
     [HttpGet()]
     public async Task<ActionResult<IEnumerable<FundResponse>>> GetInvestFundOfAccount([FromQuery] string iban)
     {
@@ -45,7 +45,7 @@ public class InvestFundController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPut("update")]
     public async Task<ActionResult<FundResponse>> UpdateInvestmentFund([FromQuery] Guid fundId, [FromBody] UpdateFundRequest request)
     {
@@ -57,7 +57,7 @@ public class InvestFundController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeleteInvestmentFund([FromQuery] Guid fundId)
     {
