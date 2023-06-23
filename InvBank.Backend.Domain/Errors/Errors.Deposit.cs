@@ -14,6 +14,10 @@ public static partial class Errors
                     "Deposit.DepositAmountGreater",
                     "Não é possível liquidar um valor maior do que a conta pode fornecer");
 
+        public static Error DepositGetAmount => Error.Conflict(
+                    "Deposit.DepositGetAmount",
+                    "Não é possível levantar mais dinheiro do que existe no deposito a praso");
+
         public static Error DepositAmountMinor => Error.Conflict(
                     "Deposit.DepositAmountMinor",
                     "Não é possível liquidar um valor menor do que o esperado");

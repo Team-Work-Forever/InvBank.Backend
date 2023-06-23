@@ -41,6 +41,32 @@ public class DepositController : BaseController
         );
     }
 
+    [AuthorizeRole(Role.CLIENT)]
+    [HttpPost("set/money")]
+    public async Task<ActionResult<SimpleResponse>> SetDepositValue([FromQuery] string depositId, [FromBody] DepositValueRequest request)
+    {
+        var payResult = await _accountService.SetDepositValue(depositId, request);
+
+        return payResult.Match
+        (
+            payResult => Ok(new SimpleResponse(payResult)),
+            firstError => Problem<SimpleResponse>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT)]
+    [HttpPost("get/money")]
+    public async Task<ActionResult<SimpleResponse>> GetDepositValue([FromQuery] string depositId, [FromBody] DepositValueRequest request)
+    {
+        var payResult = await _accountService.GetDepositValue(depositId, request);
+
+        return payResult.Match
+        (
+            payResult => Ok(new SimpleResponse(payResult)),
+            firstError => Problem<SimpleResponse>(firstError)
+        );
+    }
+
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
     [HttpPost("pay")]
     public async Task<ActionResult<SimpleResponse>> PayDepositAccount([FromBody] PayDepositRequest request)

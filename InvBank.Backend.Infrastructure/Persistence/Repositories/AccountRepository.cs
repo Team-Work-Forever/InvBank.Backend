@@ -15,6 +15,8 @@ public class AccountRepository : BaseRepository, IAccountRepository
         return await _dbContext.AuthAccounts
             .Where(ac => ac.Account == IBAN)
             .Where(ac => ac.Auth == user.Id || user.UserRole != 0)
+            .Include(ac => ac.AccountNavigation.ActivesDepositAccounts)
+            .Include(ac => ac.AccountNavigation.ActivesProperties)
             .Select(ac => ac.AccountNavigation)
             .FirstOrDefaultAsync();
     }

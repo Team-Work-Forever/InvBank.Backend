@@ -10,6 +10,7 @@ namespace InvBank.Backend.Application.Services;
 
 public class DepositAccountService : BaseService
 {
+    private readonly IValidator<DepositValueRequest> _validatorDepositValue;
     private readonly IValidator<UpdateDepositRequest> _validator;
     private readonly IAuthorizationFacade _authorizationFacade;
     private readonly IDepositRepository _depositRepository;
@@ -19,12 +20,14 @@ public class DepositAccountService : BaseService
         IDepositRepository depositRepository,
         IAccountRepository accountRepository,
         IAuthorizationFacade authorizationFacade,
-        IValidator<UpdateDepositRequest> validator)
+        IValidator<UpdateDepositRequest> validator,
+        IValidator<DepositValueRequest> validatorDepositValue)
     {
         _depositRepository = depositRepository;
         _accountRepository = accountRepository;
         _authorizationFacade = authorizationFacade;
         _validator = validator;
+        _validatorDepositValue = validatorDepositValue;
     }
 
     public async Task<ErrorOr<ActivesDepositAccount>> GetDeposit(string depositId)
@@ -119,5 +122,94 @@ public class DepositAccountService : BaseService
 
         await _depositRepository.PayDepositValue(depositId, amount);
         return "Pago";
+    }
+
+    public async Task<ErrorOr<string>> GetDepositValue(string depositId, DepositValueRequest request)
+    {
+        var validationResult = await Validate<DepositValueRequest>(_validatorDepositValue, request);
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
+
+        var authUser = await _authorizationFacade.GetAuthenticatedUser();
+
+        if (authUser.IsError)
+        {
+            return authUser.Errors;
+        }
+
+        var findDeposit = await GetDeposit(depositId);
+
+        if (findDeposit.IsError)
+        {
+            return findDeposit.Errors;
+        }
+
+        var findAccount = await _accountRepository.GetAccount(authUser.Value, findDeposit.Value.Account);
+
+        if (findAccount is null)
+        {
+            return Errors.Account.AccountNotFound;
+        }
+
+        if (findDeposit.Value.DepositValue < request.AmountValue)
+        {
+            return Errors.Deposit.DepositGetAmount;
+        }
+
+        findDeposit.Value.DepositValue -= request.AmountValue;
+        await _depositRepository.UpdateDeposit(findDeposit.Value);
+
+        findAccount.AmountValue += request.AmountValue;
+        await _accountRepository.UpdateAccount(findAccount);
+
+        return $"Foram levantados {request.AmountValue} u.m. do deposito {findDeposit.Value.Id} para a conta {findDeposit.Value.Account}";
+
+    }
+
+    public async Task<ErrorOr<string>> SetDepositValue(string depositId, DepositValueRequest request)
+    {
+        var validationResult = await Validate<DepositValueRequest>(_validatorDepositValue, request);
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
+
+        var authUser = await _authorizationFacade.GetAuthenticatedUser();
+
+        if (authUser.IsError)
+        {
+            return authUser.Errors;
+        }
+
+        var findDeposit = await GetDeposit(depositId);
+
+        if (findDeposit.IsError)
+        {
+            return findDeposit.Errors;
+        }
+
+        var findAccount = await _accountRepository.GetAccount(authUser.Value, findDeposit.Value.Account);
+
+        if (findAccount is null)
+        {
+            return Errors.Account.AccountNotFound;
+        }
+
+        if (findAccount.AmountValue < request.AmountValue)
+        {
+            return Errors.Account.CannotRaiseMore;
+        }
+
+        findAccount.AmountValue -= request.AmountValue;
+        await _accountRepository.UpdateAccount(findAccount);
+
+        findDeposit.Value.DepositValue += request.AmountValue;
+        await _depositRepository.UpdateDeposit(findDeposit.Value);
+
+        return $"Foram depositados {request.AmountValue} u.m. do deposito {findDeposit.Value.Id} da conta {findDeposit.Value.Account}";
     }
 }
