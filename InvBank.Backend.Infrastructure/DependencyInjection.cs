@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using InvBank.Backend.Infrastructure.Config;
 using Microsoft.Extensions.Options;
 using InvBank.Backend.Infrastructure.Authentication;
+using InvBank.Backend.Infrastructure.Workers;
 
 namespace InvBank.Backend.Infrastructure;
 
@@ -67,6 +68,12 @@ public static class DependencyInjection
 
         return services;
 
+    }
+
+    public static IServiceCollection AddWorkers(this IServiceCollection services)
+    {
+        services.AddHostedService<TaxWorker>();
+        return services;
     }
 
 }

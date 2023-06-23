@@ -60,4 +60,11 @@ public class FundRepository : IFundRepository
             .Where(acf => acf.DeletedAt == null)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<IEnumerable<ActivesInvestmentFund>> GetFunds()
+    {
+        return await _dbContext
+            .ActivesInvestmentFunds
+            .ToListAsync();
+    }
 }

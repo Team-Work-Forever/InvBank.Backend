@@ -96,4 +96,10 @@ public class DepositRepository : BaseRepository, IDepositRepository
 
     }
 
+    public async Task<IEnumerable<ActivesDepositAccount>> GetAllDeposits()
+    {
+        return await _dbContext
+            .ActivesDepositAccounts
+            .ToListAsync();
+    }
 }

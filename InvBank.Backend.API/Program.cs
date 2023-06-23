@@ -48,6 +48,7 @@ var builder = WebApplication.CreateBuilder(args);
         .AddInfraStructure()
         .AddMapper()
         .AddValidators()
+        .AddWorkers()
         .AddHttpContextAccessor();
 
     builder.Services.AddAuth(builder.Configuration);
