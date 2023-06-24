@@ -174,6 +174,6 @@ public class PropertyAccountService : BaseService
             return findProperty.Errors;
         }
 
-        return findProperty.Value.RentValue - findProperty.Value.YearlyValue;
+        return findProperty.Value.RentValue * 12 - findProperty.Value.YearlyValue;
     }
 }

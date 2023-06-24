@@ -23,7 +23,7 @@ public class PropertyAccountController : BaseController
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
-    [HttpPost("profit")]
+    [HttpGet("profit")]
     public async Task<ActionResult<ProfitValueResponse>> GetProfit([FromQuery] Guid propertyId)
     {
         var profitResult = await _propertyAccountService.GetProfit(propertyId);
