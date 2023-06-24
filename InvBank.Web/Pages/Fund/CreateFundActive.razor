@@ -1,0 +1,108 @@
+@page "/createinvfund/{Redirect}"
+@using InvBank.Models
+@inject FundEndPoint fundEndPoint
+@inject AccountEndPoint accountEndPoint
+@using InvBank.Web.Contracts.Fund
+@using InvBank.Web.Contracts.Account
+@inject NavigationManager navigationManager
+
+<PageTitle>Registar Fundo de Investimento</PageTitle>
+
+<Modal @ref="Modal"/>
+
+<div class="row">
+  <div class="col">
+    <EditForm Model="@InvFundActive" OnSubmit="Register">
+        <DataAnnotationsValidator/>
+
+            @if (validationErrors.Any())
+            {
+                    <div class="alert alert-danger">
+                        <ul>
+                        @foreach (var error in validationErrors)
+                        {
+                            <li>@error</li>
+                        }
+                        </ul>
+                    </div>
+            }
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Nome:</label>
+            <InputText id=name @bind-Value=InvFundActive.Name class="form-control"></InputText>
+            <ValidationMessage For="@(() => InvFundActive.Name)" />
+        </div>     
+        <div class="mb-3">
+            <label for="initial_date" class="form-label">Data Inicial:</label>
+            <InputDate id=initial_date @bind-Value=InvFundActive.InitialDate class="form-control"></InputDate>
+        </div>     
+        <div class="mb-3">
+            <label for="duration" class="form-label">Duração:</label>
+            <InputNumber id=duration @bind-Value=InvFundActive.Duration class="form-control"></InputNumber>
+        </div>     
+        <div class="mb-3">
+            <label for="tax_percent" class="form-label">Taxa:</label>
+            <InputNumber id=tax_percent @bind-Value=InvFundActive.TaxPercent class="form-control"></InputNumber>
+        </div>  
+        <button href="/actives" type="submit" class="btn btn-primary">Registar</button>    
+        <button @onclick=GoBack class="btn btn-secondary">Cancelar</button>
+    </EditForm>
+  </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Redirect { get; set; } = string.Empty;
+    public decimal[] TaxPerMonth { get; set; } = new decimal[12];
+    public string AccountIban { get; set; } = string.Empty;
+    public ActivesInvestmentFund InvFundActive { get; set; } = new ActivesInvestmentFund();
+    private List<string> validationErrors = new List<string>();
+    public List<AccountResponse> Accounts { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await accountEndPoint.GetAllAccount();
+
+        if (result.IsError)
+        {
+            return;
+        }
+
+        Accounts = result.Value.ToList();
+
+    }
+
+    protected void GoBack()
+    {
+        navigationManager.NavigateTo($"/{Redirect}");
+    }
+
+    private async void Register()
+    {
+        validationErrors.Clear();
+
+        var validationResults = InvFundActive.Validate();
+        if (validationResults.Any())
+        {
+            validationErrors.AddRange(validationResults.Select(result => result.ErrorMessage));
+            return;
+        }
+
+        var result = await fundEndPoint.CreateFund(new CreateFundRequest {
+            Duration = InvFundActive.Duration,
+            InitialDate = DateOnly.FromDateTime(InvFundActive.InitialDate).ToString("dd/MM/yyyy"),
+            Name = InvFundActive.Name,
+            TaxPercent = InvFundActive.TaxPercent
+        });
+
+        if (result.IsError)
+        {
+            Modal.Open("Falha no Registo de um Fundo de Investimento", result.FirstError.Description);
+            return;
+        }
+
+        GoBack();
+    }
+
+}

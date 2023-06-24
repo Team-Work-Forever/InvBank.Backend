@@ -1,0 +1,74 @@
+@page "/login"
+@using InvBank.Models.auth
+@inject NavigationManager navigationManager
+@inject InvBank.Service.AuthenticationService authenticationService
+
+<Modal @ref="Modal" />
+
+<h1>Autentificação</h1>
+
+<div class="row">
+  <div class="col">
+    <EditForm Model="@LoginModel" OnSubmit="HandleLogin">
+        <DataAnnotationsValidator/>
+
+           @if (validationErrors.Any())
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var error in validationErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <InputText id=email @bind-Value=LoginModel.Email class="form-control"></InputText>
+            <ValidationMessage For="@(() => LoginModel.Email)" />
+        </div>     
+        <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <InputText type="password" id=password @bind-Value=LoginModel.Password class="form-control"></InputText>
+        </div>     
+        <button type="submit" class="btn btn-primary">Entrar</button>    
+        <a href="/register/client" class="btn btn-secondary">Registar Cliente</a>
+        <a href="/register/company" class="btn btn-secondary">Registar Empresa</a>
+    </EditForm>
+  </div>
+</div>
+
+@code {
+
+    private LoginModel LoginModel = new LoginModel();
+    private List<string> validationErrors = new List<string>();
+    public Modal Modal { get; set; } = null!;
+
+    private async Task HandleLogin()
+    {
+
+        validationErrors.Clear();
+
+        var validationResults = LoginModel.Validate();
+        
+        if (validationResults.Any())
+        {
+            validationErrors.AddRange(validationResults.Select(result => result.ErrorMessage));
+            return;
+        }
+
+        var result = await authenticationService.Login(LoginModel.Email, LoginModel.Password);
+
+        if (result.IsError)
+        {
+            Modal.Open("Login Falhado", result.FirstError.Description);
+            return;
+        }
+
+        navigationManager.NavigateTo("/");
+
+    }
+
+}

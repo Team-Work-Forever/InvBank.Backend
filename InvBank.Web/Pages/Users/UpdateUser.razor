@@ -1,0 +1,147 @@
+@page "/updateUser/{Id}/{Redirect}"
+@using InvBank.Models;
+@using Contracts.Users;
+@inject NavigationManager NavigationManager
+@inject InvBank.Web.Helper.EndPoints.UserEndPoint UserEndPoint
+
+<h1>Registo</h1>
+
+<Modal @ref="Modal"/> 
+
+<div class="row" style="margin-bottom: 20px;">
+  <div class="col">
+    <EditForm Model="@User" OnSubmit="Update">
+        <DataAnnotationsValidator/>
+
+           @if (validationErrors.Any())
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var error in validationErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <InputText id=email @bind-Value=User.Email class="form-control"></InputText>
+            <ValidationMessage For="@(() => User.Email)" />
+        </div>     
+        <div class="mb-3">
+            <label for="fistName" class="form-label">Nome Próprio:</label>
+            <InputText id=fistName @bind-Value=User.FirstName class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="lastName" class="form-label">Último Nome:</label>
+            <InputText id=lastName @bind-Value=User.LastName class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="nif" class="form-label">NIF:</label>
+            <InputText id=nif @bind-Value=User.Nif class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="cc" class="form-label">cc:</label>
+            <InputText id=cc @bind-Value=User.Cc class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="phone" class="form-label">Telefone:</label>
+            <InputText id=phone @bind-Value=User.Phone class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="postalcode" class="form-label">Código Postal:</label>
+            <InputText id=postalcode @bind-Value=User.PostalCode class="form-control"></InputText>
+        </div>  
+        <div class="mb-3">
+            <label for="birthDate" class="form-label">Data de Nascimento:</label>
+            <InputDate id=birthDate @bind-Value=User.BirthDate class="form-control"></InputDate>
+        </div>
+        <div class="mb-3">
+            <label for="user" class="form-label">Nível de Acesso:</label>
+            <InputSelect id=user.id @bind-Value=User.UserRole class="form-select">
+                <option value="0">Cliente</option>
+                <option value="1">UserManager</option>
+                <option value="2">Admin</option>
+            </InputSelect>
+        </div> 
+        <button type="submit" class="btn btn-primary">Registar</button>
+        <button @onclick="GoBack" type="submit" class="btn btn-primary">Cancelar</button>   
+    </EditForm>
+  </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Redirect { get; set; } = string.Empty;
+    public UpdateUserModel User { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+    private List<string> validationErrors = new List<string>();
+
+    protected void GoBack() 
+    {
+        NavigationManager.NavigateTo($"/{Redirect}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userResult = await UserEndPoint.GetClientById(Guid.Parse(Id));
+
+        if (userResult.IsError)
+        {
+            GoBack();
+        }
+
+        User = new UpdateUserModel {
+            Id = userResult.Value.Id,
+            Email = userResult.Value.Email,
+            FirstName = userResult.Value.FirstName,
+            LastName = userResult.Value.LastName,
+            Nif = userResult.Value.Nif,
+            Cc = userResult.Value.Cc,
+            BirthDate = DateOnly.Parse(userResult.Value.BirthDate).ToDateTime(TimeOnly.MinValue),
+            Phone = userResult.Value.Phone,
+            PostalCode = userResult.Value.PostalCode,
+            UserRole = userResult.Value.UserRole
+        };
+    }
+
+    protected async Task Update() {
+
+        validationErrors.Clear();
+
+        var validationResults = User.Validate();
+        if (validationResults.Any())
+        {
+            validationErrors.AddRange(validationResults.Select(result => result.ErrorMessage));
+            return;
+        }
+
+        var updateResult = await UserEndPoint.UpdateUser(User.Id, new UpdateUserByRoleRequest{
+            Email = User.Email,
+            FirstName = User.FirstName,
+            LastName = User.LastName,
+            BirthDate = User.BirthDate.ToString("dd/MM/yyyy"),
+            Nif = User.Nif,
+            Cc = User.Cc,
+            Phone = User.Phone,
+            PostalCode = User.PostalCode,
+            UserRole = User.UserRole
+        });
+
+        if (updateResult.IsError)
+        {
+            Modal.Open("Erro ao Atualizar Utilizador", updateResult.FirstError.Description);
+            return;
+        }
+
+        GoBack();
+
+    }
+
+}

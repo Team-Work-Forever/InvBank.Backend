@@ -1,0 +1,111 @@
+@page "/report/pay/{AccountIban}"
+@using InvBank.Web.Contracts.Report
+@inject ReportEndPoint reportEndPoint
+
+ <h1>Generation Report</h1>
+
+<InputDate id=initialDate @bind-Value=InitialDate ></InputDate>
+<InputDate id=endDate @bind-Value=EndDate></InputDate>
+<button @onclick="GetData" class="btn btn-primary">Confirmar</button>    
+
+@if (PayReport is not null)
+{
+
+    <h1>Pagamentos em ativos de deposito</h1>
+
+        <table class="mt-8 table table.sprited table-bordered table-hover">
+              <thead>
+                <th>Id</th>
+                <th>Data de Pagamento</th>
+                <th>codigo de conta de deposito</th>
+                <th>valor</th>
+              </thead>
+              <tbody>
+                @if(PayReport.PaymentDeposit.Count() > 0) {
+                  @foreach (var paymentDeposit in PayReport.PaymentDeposit)
+                  {
+                    <tr>
+                      <td>@paymentDeposit.Id</td>
+                      <td>@paymentDeposit.PaymentDate</td>
+                      <td>@paymentDeposit.DepositAccount.Id</td>
+                      <td>@paymentDeposit.Amount</td>
+                    </tr>
+                  }
+                  <tr>
+                      <td>Total</td>
+                      <td></td>
+                      <td></td>
+                      <td>@PayReport.PaymentDeposit.Sum(pd => pd.Amount)</td>
+                  </tr>
+                } else {
+                  <tr><td colspan="11" align="center">Nenhum ativo registado!</td></tr>
+                }
+              </tbody>
+            </table>
+
+    <h1>Pagamentos em ativos ímoveis</h1>
+
+     <table class="mt-8 table table.sprited table-bordered table-hover">
+              <thead>
+                <th>Id</th>
+                <th>Data de Pagamento</th>
+                <th>codigo de conta de deposito</th>
+                <th>valor</th>
+              </thead>
+              <tbody>
+                @if(PayReport.PaymentProperty.Count() > 0) {
+                  @foreach (var paymentProperty in PayReport.PaymentProperty)
+                  {
+                    <tr>
+                      <td>@paymentProperty.Id</td>
+                      <td>@paymentProperty.PaymentDate</td>
+                      <td>@paymentProperty.DepositAccount.Id</td>
+                      <td>@paymentProperty.Amount</td>
+                    </tr>
+                  }
+                  <tr>
+                      <td>Total</td>
+                      <td></td>
+                      <td></td>
+                      <td>@PayReport.PaymentProperty.Sum(pd => pd.Amount)</td>
+                  </tr>
+                } else {
+                  <tr><td colspan="11" align="center">Nenhum ativo registado!</td></tr>
+                }
+              </tbody>
+            </table>
+}
+
+@code {
+
+    [Parameter]
+    public string AccountIban { get; set; } = null!;
+
+    public DateTime InitialDate { get; set; } = DateTime.Now; 
+    public DateTime EndDate { get; set; } = DateTime.Now.AddDays(30); 
+
+    public PayReportResponse PayReport { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetData();
+    }
+
+    protected async Task GetData() 
+    {
+      var result = await reportEndPoint.GenerateReportPay(AccountIban, new GeneratePayReportRequest 
+        {
+            InitialDate = DateOnly.FromDateTime(InitialDate).ToString("dd/MM/yyyy"),
+            EndDate = DateOnly.FromDateTime(EndDate).ToString("dd/MM/yyyy")
+        });
+
+        if (result.IsError)
+        {
+            return;
+        }
+
+        PayReport = result.Value;
+    }
+
+}
+

@@ -1,0 +1,137 @@
+@page "/createdeposit/{AccountIban}/{Redirect}"
+@using InvBank.Web.Contracts.Account
+@using InvBank.Models
+@inject AccountEndPoint accountEndPoint
+@inject DepositEndPoint depositEndPoint
+@inject NavigationManager navigationManager
+
+<PageTitle>Registar Depósito a Prazo</PageTitle>
+
+<Modal @ref="Modal"/>
+
+<div class="row">
+  <div class="col">
+    <EditForm Model="@DepositActive" OnSubmit="Register">
+        <DataAnnotationsValidator/>
+
+           @if (validationErrors.Any())
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var error in validationErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Nome:</label>
+            <InputText id=name @bind-Value=DepositActive.Name class="form-control"></InputText>
+            <ValidationMessage For="@(() => DepositActive.Name)" />
+        </div>     
+        <div class="mb-3">
+            <label for="initial_date" class="form-label">Data Inicial:</label>
+            <InputDate id=initial_date @bind-Value=DepositActive.InitialDate class="form-control"></InputDate>
+        </div>     
+        <div class="mb-3">
+            <label for="duration" class="form-label">Duração:</label>
+            <InputNumber id=duration @bind-Value=DepositActive.Duration class="form-control"></InputNumber>
+        </div>     
+        <div class="mb-3">
+            <label for="tax_percent" class="form-label">Taxa:</label>
+            <InputNumber id=tax_percent @bind-Value=DepositActive.TaxPercent class="form-control"></InputNumber>
+        </div>     
+        <div class="mb-3">
+            <label for="value" class="form-label">Valor:</label>
+            <InputNumber id=value @bind-Value=DepositActive.Value class="form-control"></InputNumber>
+        </div>     
+        <div class="mb-3">
+            <label for="yearly_tax" class="form-label">Taxa Anual:</label>
+            <InputNumber id=yearly_tax @bind-Value=DepositActive.YearlyTax class="form-control"></InputNumber>
+        </div>     
+        <div class="mb-3">
+            <label for="account" class="form-label">Conta:</label>
+            <InputSelect id=account.Iban @bind-Value=DepositActive.Account class="form-select">
+                @if(Accounts.Count() > 0) {
+                    <option value="">Selecionar Conta</option>
+                    @foreach (var account in Accounts)
+                    {
+                        <option>@account.iban</option>
+                    }
+                } else {
+                    <option value="">Selecionar Conta</option>
+                }
+            </InputSelect>
+        </div> 
+        <button href="/actives" type="submit" class="btn btn-primary">Registar</button>    
+        <a @onclick="Cancel" class="btn btn-secondary">Cancelar</a>
+    </EditForm>
+  </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string AccountIban { get; set; } = null!;
+
+    [Parameter]
+    public string Redirect { get; set; } = null!;
+
+    public ActivesDepositAccount DepositActive { get; set; } = new ActivesDepositAccount();
+    private List<string> validationErrors = new List<string>();
+    public List<AccountResponse> Accounts { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await accountEndPoint.GetAllAccount();
+
+        if (result.IsError)
+        {
+            return;
+        }
+
+        Accounts = result.Value.ToList();
+
+    }
+
+    private void Cancel() 
+    {
+        navigationManager.NavigateTo($"/{Redirect}");
+    }
+
+    private async void Register()
+    {
+        validationErrors.Clear();
+
+        var validationResults = DepositActive.Validate();
+        if (validationResults.Any())
+        {
+            validationErrors.AddRange(validationResults.Select(result => result.ErrorMessage));
+            return;
+        }
+
+        var result = await depositEndPoint.CreateDeposit(new CreateDepositRequest {
+            Duration = DepositActive.Duration,
+            IBAN = DepositActive.Account,
+            InitialDate = DateOnly.FromDateTime(DepositActive.InitialDate).ToString("dd/MM/yyyy"),
+            Name = DepositActive.Name,
+            TaxPercent = DepositActive.TaxPercent,
+            Value = DepositActive.Value,
+            YearlyTax = DepositActive.YearlyTax
+        });
+
+        if (result.IsError)
+        {
+            Modal.Open("Falha no Registo de um Deposito a Praso", result.FirstError.Description);
+            return;
+        }
+
+        navigationManager.NavigateTo($"/{Redirect}");
+
+    }
+
+}
+

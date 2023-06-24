@@ -1,0 +1,102 @@
+@page "/register/client"
+@using InvBank.Models.auth
+@inject NavigationManager navigationManager
+@inject InvBank.Service.AuthenticationService authenticationService
+
+<h1>Registo</h1>
+
+<Modal @ref="Modal"/>
+
+<div class="row" style="margin-bottom: 20px;">
+  <div class="col">
+    <EditForm Model="@RegisterModel" OnSubmit="RegisterUser">
+        <DataAnnotationsValidator/>
+
+           @if (validationErrors.Any())
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var error in validationErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <InputText id=email @bind-Value=RegisterModel.Email class="form-control"></InputText>
+            <ValidationMessage For="@(() => RegisterModel.Email)" />
+        </div>     
+        <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <InputText type="password" id=password @bind-Value=RegisterModel.Password class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="confirmpassword" class="form-label">Confirmar Password:</label>
+            <InputText type="password" id=confirmpassword @bind-Value=RegisterModel.ConfirmPassword class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="fistName" class="form-label">Nome Próprio:</label>
+            <InputText id=fistName @bind-Value=RegisterModel.FirstName class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="lastName" class="form-label">Último Nome:</label>
+            <InputText id=lastName @bind-Value=RegisterModel.LastName class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="nif" class="form-label">NIF:</label>
+            <InputText id=nif @bind-Value=RegisterModel.Nif class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="cc" class="form-label">cc:</label>
+            <InputText id=cc @bind-Value=RegisterModel.Cc class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="phone" class="form-label">Telefone:</label>
+            <InputText id=phone @bind-Value=RegisterModel.Phone class="form-control"></InputText>
+        </div>     
+        <div class="mb-3">
+            <label for="postalcode" class="form-label">Código Postal:</label>
+            <InputText id=postalcode @bind-Value=RegisterModel.PostalCode class="form-control"></InputText>
+        </div>  
+                <div class="mb-3">
+            <label for="birthDate" class="form-label">Data de Nascimento:</label>
+            <InputDate id=birthDate @bind-Value=RegisterModel.BirthDate class="form-control"></InputDate>
+        </div>     
+        <button type="submit" class="btn btn-primary">Registar</button>    
+    </EditForm>
+  </div>
+</div>
+
+@code {
+
+    private RegisterClientModel RegisterModel = new RegisterClientModel();
+    private List<string> validationErrors = new List<string>();
+    public Modal Modal { get; set; } = null!;
+
+    private async Task RegisterUser()
+    {
+        validationErrors.Clear();
+
+        var validationResults = RegisterModel.Validate();
+        if (validationResults.Any())
+        {
+            validationErrors.AddRange(validationResults.Select(result => result.ErrorMessage));
+            return;
+        }
+       
+        var result = await authenticationService.RegisterClient(RegisterModel);
+
+        if (result.IsError)
+        {
+            Modal.Open("Registro Falhado", result.FirstError.Description);
+            return;
+        }
+
+        navigationManager.NavigateTo("/login");
+                
+    }
+
+}

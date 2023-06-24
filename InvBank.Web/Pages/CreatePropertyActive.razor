@@ -1,0 +1,159 @@
+@page "/createproperty/{AccountIban}/{Redirect}"
+@using InvBank.Web.Contracts.PropertyAccount
+@using InvBank.Web.Contracts.Account
+@using InvBank.Models
+@inject AccountEndPoint accountEndPoint
+@inject PropertyAccountEndPoint propertyAccountEndPoint
+@inject NavigationManager navigationManager
+
+<h1>Registar Imóvel</h1>
+
+<Modal @ref="Modal"/>
+
+<div class="row" style="margin: 20px 0;">
+  <div class="col">
+    <EditForm Model="@PropertyActive" OnSubmit="Register">
+        <DataAnnotationsValidator/>
+
+           @if (validationErrors.Any())
+            {
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach (var error in validationErrors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Nome:</label>
+            <InputText id=name @bind-Value=PropertyActive.Name class="form-control"></InputText>
+            <ValidationMessage For="@(() => PropertyActive.Name)" />
+        </div>     
+        <div class="mb-3">
+            <label for="initial_date" class="form-label">Data Inicial:</label>
+            <InputDate id=initial_date @bind-Value=PropertyActive.InitialDate class="form-control"></InputDate>
+        </div>     
+        <div class="mb-3">
+            <label for="duration" class="form-label">Duração:</label>
+            <InputNumber id=duration @bind-Value=PropertyActive.Duration class="form-control"></InputNumber>
+        </div>     
+        <div class="mb-3">
+            <label for="tax_percent" class="form-label">Taxa:</label>
+            <InputNumber id=tax_percent @bind-Value=PropertyActive.TaxPercent class="form-control"></InputNumber>
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">Designação:</label>
+            <InputText id=name @bind-Value=PropertyActive.Designation class="form-control"></InputText>
+            <ValidationMessage For="@(() => PropertyActive.Designation)" />
+        </div>      
+        <div class="mb-3">
+            <label for="name" class="form-label">Código Postal:</label>
+            <InputText id=name @bind-Value=PropertyActive.PostalCode class="form-control"></InputText>
+            <ValidationMessage For="@(() => PropertyActive.PostalCode)" />
+        </div>      
+        <div class="mb-3">
+            <label for="value" class="form-label">Valor da Propriedade:</label>
+            <InputNumber id=value @bind-Value=PropertyActive.PropertyValue class="form-control"></InputNumber>
+        </div>       
+        <div class="mb-3">
+            <label for="value" class="form-label">Valor da Renda:</label>
+            <InputNumber id=value @bind-Value=PropertyActive.RentValue class="form-control"></InputNumber>
+        </div>       
+        <div class="mb-3">
+            <label for="value" class="form-label">Valor Mensal do Condomínio:</label>
+            <InputNumber id=value @bind-Value=PropertyActive.MonthValue class="form-control"></InputNumber>
+        </div>       
+        <div class="mb-3">
+            <label for="value" class="form-label">Valor Anual estimado de outras Despesas com o Imóvel:</label>
+            <InputNumber id=value @bind-Value=PropertyActive.YearlyValue class="form-control"></InputNumber>
+        </div>       
+        <div class="mb-3">
+            <label for="account" class="form-label">Conta:</label>
+            <InputSelect id=account.Iban @bind-Value=PropertyActive.Account class="form-select">
+                @if(Accounts.Count() > 0) {
+                    <option value="">Selecionar Conta</option>
+                    @foreach (var account in Accounts)
+                    {
+                        <option>@account.iban</option>
+                    }
+                } else {
+                    <option value="">Selecionar Conta</option>
+                }
+            </InputSelect>
+        </div> 
+        <button href="/actives" type="submit" class="btn btn-primary">Registar</button>    
+        <a @onclick="Cancel" class="btn btn-secondary">Cancelar</a>
+    </EditForm>
+  </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public string AccountIban { get; set; } = null!;
+
+    [Parameter]
+    public string Redirect { get; set; } = null!;
+
+    public ActivesProperty PropertyActive { get; set; } = new ActivesProperty();
+    private List<string> validationErrors = new List<string>();
+    public List<AccountResponse> Accounts { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await accountEndPoint.GetAllAccount();
+
+        if (result.IsError)
+        {
+            return;
+        }
+
+        Accounts = result.Value.ToList();
+
+    }
+
+    private void Cancel() 
+    {
+        navigationManager.NavigateTo($"/{Redirect}");
+    }
+
+    private async void Register()
+    {
+        validationErrors.Clear();
+
+        var validationResults = PropertyActive.Validate();
+        if (validationResults.Any())
+        {
+            validationErrors.AddRange(validationResults.Select(result => result.ErrorMessage));
+            return;
+        }
+
+        var result = await propertyAccountEndPoint.CreatePropertyAccount(new CreatePropertyAccountRequest {
+            Duration = PropertyActive.Duration,
+            InitialDate = DateOnly.FromDateTime(PropertyActive.InitialDate).ToString("dd/MM/yyyy"),
+            Name = PropertyActive.Name,
+            AccountIBAN = PropertyActive.Account,
+            Designation = PropertyActive.Designation,
+            MonthValue = PropertyActive.MonthValue,
+            PostalCode = PropertyActive.PostalCode,
+            PropertyValue = PropertyActive.PropertyValue,
+            RentValue = PropertyActive.RentValue,
+            TaxPercent = PropertyActive.TaxPercent,
+            YearlyValue = PropertyActive.YearlyValue
+        });
+
+        if (result.IsError)
+        {
+            Modal.Open("Falha no Registo de um ativo ímovel", result.FirstError.Description);
+            return;
+        }
+
+        navigationManager.NavigateTo($"/{Redirect}");
+
+    }
+
+}

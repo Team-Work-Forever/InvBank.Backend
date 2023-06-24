@@ -1,0 +1,194 @@
+@using InvBank.Models;
+@using InvBank.Web.Contracts.Account;
+@using InvBank.Web.Contracts.Fund;
+@inject InvBank.Web.Helper.EndPoints.FundEndPoint FundEndPoint
+@inject InvBank.Web.Helper.EndPoints.AccountEndPoint AccountEndPoint
+@inject NavigationManager NavigationManager
+@page "/details/fund/{FundId}/{AccountIban}"
+
+<Modal @ref="Modal" />
+
+<p>Informação da Conta</p>
+
+<p>
+    IBAN: @Account.iban <br>
+    Valor Corrente: @Account.AmountValue u.m.<br>
+    Banco: @Account.Bank <br>
+</p>
+
+<p>Informações do Fundo de Investimento</p>
+
+<p>
+    Nome: @Fund.Name<br>
+    Data de Criação: @Fund.InitialDate<br>
+    Duração: @Fund.Duration meses<br>
+    Taxa de Juros: @Fund.TaxPercent %<br>
+    Valor: @Fund.Value u.m.<br>
+    Lucro: @Profit u.m.<br>
+</p> 
+<div style="margin: 20px;" class="btn-group" role="group" aria-label="Basic example">
+    @if (canInvest)
+    {
+        <button 
+            @onclick="() => OpenDeposit(1)"
+            type="submit"
+            class="btn btn-warning">
+            Investir
+        </button>
+    } else {
+        <button 
+            @onclick="() => OpenDeposit(2)"
+            type="submit"
+            class="btn btn-warning">
+            Investir
+        </button>
+    }
+    <button 
+        @onclick="GoBack"
+        type="submit"
+        class="btn btn-warning">
+        Voltar
+    </button>
+</div>
+
+@if (MakeDeposit)
+{
+    <section style="margin: 20px 0; display: flex; flex-direction: row; gap: 12px">
+        <p>Valor a Depositar na Conta</p>
+        <InputNumber @bind-Value="Amount"/>
+        <button @onclick="SetAction" class="btn btn-secondary">Finalizar</button>
+        <button @onclick="() => OpenDeposit(0)" class="btn btn-secondary">Cancelar</button>
+    </section>
+}
+
+@code {
+
+    public int action = 0;
+    public bool canInvest = false;
+
+    [Parameter]
+    public string FundId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string AccountIban { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Redirect { get; set; } = string.Empty;
+    public AccountResponse Account { get; set; } = new();
+    public decimal Profit { get; set; }
+
+    public decimal Amount { get; set; }
+    public FundResponse Fund { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+    public bool MakeDeposit { get; set; }
+
+    protected void OpenDeposit(int action) 
+    {
+        MakeDeposit = !MakeDeposit;
+        this.action = action;
+    }
+
+    protected void GoBack() 
+    {
+        NavigationManager.NavigateTo($"/{Redirect}");
+    }
+
+    protected async Task FetchData() 
+    {
+        var fundResult = await FundEndPoint.GetFund(Guid.Parse(FundId));
+   
+        if (fundResult.IsError)
+        {
+            GoBack();
+        }
+
+        Fund = fundResult.Value;
+
+        var findAccount = await AccountEndPoint.GetAccount(AccountIban);
+    
+        if (findAccount.IsError)
+        {
+            GoBack();
+        }
+
+        var profitResult = await FundEndPoint.GetProfit(Fund.Id);
+
+        if (profitResult.IsError)
+        {
+            GoBack();
+        }
+
+        Profit = profitResult.Value.Profit;
+
+        var fundsAccount = await FundEndPoint.GetInvestFundOfAccount(AccountIban);
+
+        if (fundsAccount.IsError)
+        {
+            GoBack();
+        }
+
+        canInvest = fundsAccount.Value
+            .Where(x => x.Id == Fund.Id)
+            .FirstOrDefault() is not null;
+
+        Account = findAccount.Value;
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchData();
+    }
+
+    protected async Task SetAction()
+    {
+        switch (action)
+        {
+            case 1:
+                await SetDepositValue();
+                return;
+            case 2:
+                await Associate();
+                return;
+            default:
+                OpenDeposit(0);
+                return;
+        }
+    }
+
+    protected async Task SetDepositValue() 
+    {
+        var investResult = await FundEndPoint.InvestOnFund(Account.iban, Fund.Id, new MakeTransferRequest {
+            AmountValue = Amount
+        });
+
+        if (investResult.IsError)
+        {
+            Modal.Open("Erro ao Investir no Fundo", investResult.FirstError.Description);
+            return;
+        }
+        
+        OpenDeposit(0);
+        await FetchData();
+    }
+
+    protected async Task Associate() 
+    {
+        var associateResult = await FundEndPoint.AssociateAccountToFund(new AssociateAccountToFundRequest {
+            IBAN = AccountIban,
+            FundId = Fund.Id,
+            Amount = Amount
+        });
+
+        if (associateResult.IsError)
+        {
+            Modal.Open("Erro ao Associar o Fundo", associateResult.FirstError.Description);
+            return;
+        }
+
+        await SetDepositValue();
+        await FetchData();
+    }
+
+}
+

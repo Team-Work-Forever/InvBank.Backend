@@ -1,0 +1,169 @@
+@using InvBank.Models;
+@using InvBank.Web.Contracts.Account;
+@using InvBank.Web.Contracts.Deposit;
+@inject InvBank.Web.Helper.EndPoints.DepositEndPoint DepositEndPoint
+@inject InvBank.Web.Helper.EndPoints.AccountEndPoint AccountEndPoint
+@inject NavigationManager NavigationManager
+@page "/details/deposit/{DepositId}"
+
+<Modal @ref="Modal" />
+
+<p>Informação da Conta</p>
+
+<p>
+    IBAN: @Account.iban <br>
+    Valor Corrente: @Account.AmountValue u.m.<br>
+    Banco: @Account.Bank <br>
+</p>
+
+<p>Informações do Deposito</p>
+
+<p>
+    Nome: @Deposit.Name<br>
+    Data de Criação: @Deposit.InitialDate<br>
+    Duração: @Deposit.Duration meses<br>
+    Taxa de Juros: @Deposit.TaxPercent %<br>
+    Valor: @Deposit.Value u.m.<br>
+    Tax Anual: @Deposit.YearlyTax %<br>
+    Lucro: @Profit<br>
+</p> 
+<div style="margin: 20px;" class="btn-group" role="group" aria-label="Basic example">
+    <button 
+        @onclick="() => OpenDeposit(1)"
+        type="submit"
+        class="btn btn-warning">
+        Depositar Dinheiro
+    </button>
+     <button 
+        @onclick="() => OpenDeposit(2)"
+        type="submit"
+        class="btn btn-warning">
+        Levantar Dinheiro
+    </button>
+     <button 
+        @onclick="GoBack"
+        type="submit"
+        class="btn btn-warning">
+        Voltar
+    </button>
+</div>
+
+@if (MakeDeposit)
+{
+    <section style="margin: 20px 0; display: flex; flex-direction: row; gap: 12px">
+        <p>Valor a Depositar na Conta</p>
+        <InputNumber @bind-Value="Amount"/>
+        @if (action == 1)
+        {
+             <button @onclick="SetDepositValue" class="btn btn-secondary">Finalizar</button>
+        } else {
+             <button @onclick="GetDepositValue" class="btn btn-secondary">Finalizar</button>
+        }
+        <button @onclick="() => OpenDeposit(0)" class="btn btn-secondary">Cancelar</button>
+    </section>
+}
+
+@code {
+
+    public int action = 0;
+
+    [Parameter]
+    public string DepositId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Redirect { get; set; } = string.Empty;
+    public decimal Profit { get; set; }
+
+    public decimal Amount { get; set; }
+    public ActivesDepositAccount Deposit { get; set; } = new();
+    public AccountResponse Account { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+    public bool MakeDeposit { get; set; }
+
+    protected void OpenDeposit(int action) 
+    {
+        MakeDeposit = !MakeDeposit;
+        this.action = action;
+    }
+
+    protected void GoBack() 
+    {
+        NavigationManager.NavigateTo($"/{Redirect}");
+    }
+
+    protected async Task FetchData() 
+    {
+         var depositResult = await DepositEndPoint.GetDeposit(Guid.Parse(DepositId));
+   
+        if (depositResult.IsError)
+        {
+            GoBack();
+        }
+
+        Deposit.Id = depositResult.Value.Id;
+        Deposit.Name = depositResult.Value.DepositName;
+        Deposit.Duration = depositResult.Value.Duration;
+        Deposit.InitialDate = DateOnly.Parse(depositResult.Value.InitialDate).ToDateTime(TimeOnly.MinValue);
+        Deposit.TaxPercent = depositResult.Value.TaxPercent;
+        Deposit.YearlyTax = depositResult.Value.YearlyTax;
+        Deposit.Value = depositResult.Value.Value;
+        Deposit.Account = depositResult.Value.Account;
+
+        var profitResult = await DepositEndPoint.GetProfit(Deposit.Id);
+
+        if (profitResult.IsError)
+        {
+            GoBack();
+        }
+
+        Profit = profitResult.Value.Profit;
+
+        var accountResult = await AccountEndPoint.GetAccount(Deposit.Account);
+   
+        if (accountResult.IsError)
+        {
+            GoBack();
+        }
+
+        Account = accountResult.Value;
+        
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchData();
+    }
+
+    protected async Task SetDepositValue() 
+    {
+        var setResult = await DepositEndPoint.SetDepositValue(Guid.Parse(DepositId), new DepositValueRequest {
+            AmountValue = Amount
+        });
+
+        if (setResult.IsError)
+        {
+            Modal.Open("Erro ao Depositar Dinheiro no Deposito a Praso", setResult.FirstError.Description);
+        }
+
+        OpenDeposit(0);
+        await FetchData();
+        
+    }
+
+    protected async Task GetDepositValue() 
+    {
+        var setResult = await DepositEndPoint.GetDepositValue(Guid.Parse(DepositId), new DepositValueRequest {
+            AmountValue = Amount
+        });
+
+        if (setResult.IsError)
+        {
+            Modal.Open("Erro ao Levantar Dinheiro do Deposito a Praso", setResult.FirstError.Description);
+        }
+
+        OpenDeposit(0);
+        await FetchData();
+    }
+
+}
+

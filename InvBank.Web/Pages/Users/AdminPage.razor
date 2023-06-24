@@ -1,0 +1,136 @@
+@page "/admin"
+@using InvBank.Web.Contracts.Users;
+@inject InvBank.Web.Helper.EndPoints.UserEndPoint UserEndPoint
+@inject NavigationManager NavigationManager
+@attribute [Authorize()]
+
+<h1>Admin</h1>
+
+<Modal @ref="Modal" />
+
+<div style="margin: 20px;" class="btn-group" role="group" aria-label="Basic example">
+    <button 
+        @onclick="() => CreateUser()"
+        type="submit"
+        class="btn btn-warning">
+        Registar Client
+    </button>
+     <button 
+        @onclick="() => ManageAccounts()"
+        type="submit"
+        class="btn btn-warning">
+        Gerir Contas
+    </button>
+</div>
+
+@{ int i = 0; }
+@foreach (var user in Users)
+{
+<div class="accordions" style="margin-top: 20px">
+    <div class="accordion" id="actives">
+        <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+            <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#@i"
+                aria-expanded="false"
+                aria-controls="@i"
+            >
+            Email: @user.Email Nivel de Utilizador: @user.UserRole
+            </button>
+        </h2>
+        <div
+            id="@i"
+            class="accordion-collapse collapse"
+            data-bs-parent="#actives"
+        >
+            <div class="row">
+            </div>
+                <div class="accordion-body">
+                    <p>
+                        Informaçãoes: <br>
+                        Email: @user.Email <br>
+                        Nome: @user.FirstName @user.LastName <br>
+                        Data de Nascimento: @user.BirthDate <br>
+                        NIF: @user.Nif <br>
+                        CC: @user.Cc <br>
+                        Telemóvel: @user.Phone <br>
+                        Codigo Postal: @user.PostalCode <br>
+                        Nivel de Utilizador: @user.UserRole <br>
+                    </p>
+                    <div class="btn-group" role="group" aria-label="Basic example">
+                        <button 
+                            @onclick="() => DeleteClient(user.Id)"
+                            type="submit"
+                            class="btn btn-warning">
+                            Remover Cliente
+                        </button>
+                        <button 
+                            @onclick="() => UpdateUser(user.Id)"
+                            type="submit" 
+                            class="btn btn-info">
+                            Alterar Informação do Cliente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+i++;
+}
+
+@code {
+
+    public List<UserResponse> Users { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var users = await UserEndPoint.GetAllWorkingUsers();
+
+        if (users.IsError)
+        {
+            return;
+        }
+
+        Users = users.Value.ToList();
+        StateHasChanged();
+    }
+
+    protected override bool ShouldRender()
+    {
+        return true;
+    }
+
+    protected async Task DeleteClient(Guid id) 
+    {
+        var deleteResult = await UserEndPoint.DeleteUser(id);
+
+        if (deleteResult.IsError)
+        {
+            Modal.Open("Erro ao Eliminar um Utilizador", deleteResult.FirstError.Description);
+        }
+
+        StateHasChanged();
+
+    }
+
+    protected void ManageAccounts() 
+    {
+        NavigationManager.NavigateTo($"/dashboard");
+    }
+
+    protected void UpdateUser(Guid id) 
+    {
+        NavigationManager.NavigateTo($"/updateUser/{id}/admin");
+    }
+
+    protected void CreateUser() 
+    {
+        NavigationManager.NavigateTo($"/createUser/admin");
+    }
+
+}
