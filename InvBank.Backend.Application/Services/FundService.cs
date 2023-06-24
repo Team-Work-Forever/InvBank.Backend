@@ -250,4 +250,18 @@ public class FundService : BaseService
 
         return $"Foi depositado {request.amountValue} u.m. no fundo da conta ${IBAN}";
     }
+
+    public async Task<ErrorOr<decimal>> GetProfit(Guid id)
+    {
+        var findFund = await GetFund(id);
+
+        if (findFund.IsError)
+        {
+            return findFund.Errors;
+        }
+
+        return
+            findFund.Value.InvestValue;
+
+    }
 }

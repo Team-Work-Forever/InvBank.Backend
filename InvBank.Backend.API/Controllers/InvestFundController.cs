@@ -23,6 +23,18 @@ public class InvestFundController : BaseController
     }
 
     [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
+    [HttpGet("profit")]
+    public async Task<ActionResult<ProfitValueResponse>> GetProfit([FromQuery] Guid id)
+    {
+        var fundResult = await _fundService.GetProfit(id);
+
+        return fundResult.Match(
+            fundResult => Ok(_mapper.Map<ProfitValueResponse>(fundResult)),
+            firstError => Problem<ProfitValueResponse>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<FundResponse>>> GetAllFunds()
     {
