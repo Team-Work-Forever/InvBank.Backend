@@ -28,6 +28,18 @@ public class DepositController : BaseController
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
+    [HttpPost("profit")]
+    public async Task<ActionResult<ProfitValueResponse>> GetProfit([FromQuery] string depositId)
+    {
+        var result = await _accountService.GetProfit(depositId);
+
+        return result.Match(
+            result => Ok(_mapper.Map<ProfitValueResponse>(result)),
+            firstError => Problem<ProfitValueResponse>(firstError)
+        );
+    }
+
     [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> RegisterDepositAccount([FromBody] CreateDepositRequest request)

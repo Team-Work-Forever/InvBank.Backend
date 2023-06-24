@@ -13,4 +13,4 @@ public record PropertyAccountResponse
     decimal MonthValue,
     decimal YearlyValue,
     string Account
-);
+    );

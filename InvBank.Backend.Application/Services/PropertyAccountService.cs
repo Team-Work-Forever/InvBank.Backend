@@ -164,4 +164,16 @@ public class PropertyAccountService : BaseService
         return "Ativo Imóvel Pago";
 
     }
+
+    public async Task<ErrorOr<decimal>> GetProfit(Guid propertyId)
+    {
+        var findProperty = await GetPropertyAccount(propertyId);
+
+        if (findProperty.IsError)
+        {
+            return findProperty.Errors;
+        }
+
+        return findProperty.Value.RentValue - findProperty.Value.YearlyValue;
+    }
 }

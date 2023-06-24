@@ -1,9 +1,9 @@
 using InvBank.Backend.Application.Common.Contracts;
+using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Deposit;
 using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Contracts.PropertyAccount;
 using InvBank.Backend.Contracts.Report;
-using InvBank.Backend.Domain.Entities;
 
 namespace InvBank.Backend.API.Mappers;
 
@@ -12,6 +12,9 @@ public class ReportMapper : AutoMapper.Profile
 
     public ReportMapper()
     {
+        CreateMap<decimal, ProfitValueResponse>()
+            .ConvertUsing(x => new ProfitValueResponse(x));
+
         CreateMap<PayReportResult, PayReportResponse>()
             .ConvertUsing(pr => new PayReportResponse(
                 pr.PaymentDeposit.Select(pd => new PayDepositResponse

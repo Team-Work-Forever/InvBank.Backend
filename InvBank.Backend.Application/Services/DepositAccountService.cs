@@ -212,4 +212,19 @@ public class DepositAccountService : BaseService
 
         return $"Foram depositados {request.AmountValue} u.m. do deposito {findDeposit.Value.Id} da conta {findDeposit.Value.Account}";
     }
+
+    public async Task<ErrorOr<decimal>> GetProfit(string depositId)
+    {
+        var findDeposit = await GetDeposit(depositId);
+
+        if (findDeposit.IsError)
+        {
+            return findDeposit.Errors;
+        }
+
+        var profit =
+            findDeposit.Value.DepositValue;
+
+        return profit;
+    }
 }

@@ -22,6 +22,18 @@ public class PropertyAccountController : BaseController
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
+    [HttpPost("profit")]
+    public async Task<ActionResult<ProfitValueResponse>> GetProfit([FromQuery] Guid propertyId)
+    {
+        var profitResult = await _propertyAccountService.GetProfit(propertyId);
+
+        return profitResult.Match(
+            profitResult => Ok(_mapper.Map<ProfitValueResponse>(profitResult)),
+            firstError => Problem<ProfitValueResponse>(firstError)
+        );
+    }
+
     [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> CreatePropertyAccount([FromBody] CreatePropertyAccountRequest request)
