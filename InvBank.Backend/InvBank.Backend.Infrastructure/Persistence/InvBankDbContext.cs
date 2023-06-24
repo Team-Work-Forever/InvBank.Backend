@@ -41,7 +41,7 @@ public partial class InvBankDbContext : DbContext
     public virtual DbSet<Profile> Profiles { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseNpgsql("Server=es2;Port=5432;Database=invbank;Username=invbank;Password=invbank");
+        => optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=invbank;Username=invbank;Password=invbank");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
