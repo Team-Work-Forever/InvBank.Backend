@@ -29,7 +29,7 @@ public class DepositController : BaseController
     }
 
     [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
-    [HttpPost("profit")]
+    [HttpGet("profit")]
     public async Task<ActionResult<ProfitValueResponse>> GetProfit([FromQuery] string depositId)
     {
         var result = await _accountService.GetProfit(depositId);
