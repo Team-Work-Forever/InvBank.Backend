@@ -1,6 +1,7 @@
 using AutoMapper;
 using InvBank.Backend.Application.Services;
 using InvBank.Backend.Contracts;
+using InvBank.Backend.Contracts.Account;
 using InvBank.Backend.Contracts.Fund;
 using InvBank.Backend.Infrastructure.Authentication;
 using InvBank.Backend.Infrastructure.Providers;
@@ -21,6 +22,42 @@ public class InvestFundController : BaseController
         _mapper = mapper;
     }
 
+    [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
+    [HttpGet()]
+    public async Task<ActionResult<IEnumerable<FundResponse>>> GetAllFunds()
+    {
+        var fundResult = await _fundService.GetAllFunds();
+
+        return fundResult.Match(
+            fundResult => Ok(_mapper.Map<IEnumerable<FundResponse>>(fundResult)),
+            firstError => Problem<IEnumerable<FundResponse>>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
+    [HttpPost("associate")]
+    public async Task<ActionResult<FundResponse>> AssociateAccountToFund(AssociateAccountToFundRequest request)
+    {
+        var fundResult = await _fundService.AssociateAccountToFund(request);
+
+        return fundResult.Match(
+            fundResult => Ok(_mapper.Map<FundResponse>(fundResult)),
+            firstError => Problem<FundResponse>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
+    [HttpPost("invest")]
+    public async Task<ActionResult<SimpleResponse>> InvestOnFund([FromQuery] string iban, [FromQuery] Guid fundId, [FromBody] MakeTransferRequest request)
+    {
+        var fundResult = await _fundService.InvestOnFund(iban, fundId, request);
+
+        return fundResult.Match(
+            fundResult => Ok(new SimpleResponse(fundResult)),
+            firstError => Problem<SimpleResponse>(firstError)
+        );
+    }
+
     [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> CreateInvestFund([FromBody] CreateFundRequest request)
@@ -34,7 +71,7 @@ public class InvestFundController : BaseController
     }
 
     [AuthorizeRole(Role.USERMANAGER, Role.CLIENT, Role.ADMIN)]
-    [HttpGet()]
+    [HttpGet("account")]
     public async Task<ActionResult<IEnumerable<FundResponse>>> GetInvestFundOfAccount([FromQuery] string iban)
     {
         var fundsResult = await _fundService.GetFundsOfAccount(iban);

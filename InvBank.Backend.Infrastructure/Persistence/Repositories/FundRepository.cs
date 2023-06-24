@@ -13,16 +13,23 @@ public class FundRepository : IFundRepository
         _dbContext = dbContext;
     }
 
-    public async Task<int> CreateFund(Account account, ActivesInvestmentFund depositAccount, decimal value)
+    public async Task<ActivesInvestmentFund> AssociateAccount(Account account, ActivesInvestmentFund invFund, decimal value)
     {
         _dbContext.AccountInvs.Add(new AccountInv
         {
             AccountNavigation = account,
-            IdNavigation = depositAccount,
+            IdNavigation = invFund,
             AccountValue = value
         });
+        
+        var fund = await _dbContext.ActivesInvestmentFunds
+            .Where(x => x.Id == invFund.Id)
+            .FirstAsync();
 
-        return await _dbContext.SaveChangesAsync();
+        fund.InvestValue += value;
+
+        await _dbContext.SaveChangesAsync();
+        return invFund;
     }
 
     public async Task<ActivesInvestmentFund> UpdateFund(ActivesInvestmentFund investmentFund)
@@ -65,6 +72,13 @@ public class FundRepository : IFundRepository
     {
         return await _dbContext
             .ActivesInvestmentFunds
+            .Where(x => x.DeletedAt == null)
             .ToListAsync();
+    }
+
+    public async Task<int> CreateFund(ActivesInvestmentFund investmentFund)
+    {
+        _dbContext.ActivesInvestmentFunds.Add(investmentFund);
+        return await _dbContext.SaveChangesAsync();
     }
 }

@@ -8,9 +8,6 @@ public class CreateFundRequestValidator : AbstractValidator<CreateFundRequest>
 {
     public CreateFundRequestValidator()
     {
-        RuleFor(request => request.Account).Length(30)
-            .WithMessage("Por favor indique um IBAN com 30 dígitos");
-
         RuleFor(request => request.InitialDate)
             .Must(ValidateUtils.MustBeDate)
             .WithMessage("Por favor indique uma data valida");
@@ -26,14 +23,6 @@ public class CreateFundRequestValidator : AbstractValidator<CreateFundRequest>
         RuleFor(request => request.TaxPercent)
            .NotEqual(0)
            .WithMessage("Por favor indique uma taxa diferente de 0%");
-
-        RuleFor(request => request.Value)
-          .NotEqual(0)
-          .WithMessage("Por favor indique uma valor maior que 0 u.m");
-
-        RuleFor(request => request.Value)
-            .GreaterThan(0)
-            .WithMessage("Por favor indique uma valor positivo");
 
         RuleFor(request => request.Name)
             .NotEmpty()
