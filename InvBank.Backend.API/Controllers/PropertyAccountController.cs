@@ -22,7 +22,7 @@ public class PropertyAccountController : BaseController
         _mapper = mapper;
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> CreatePropertyAccount([FromBody] CreatePropertyAccountRequest request)
     {
@@ -34,7 +34,7 @@ public class PropertyAccountController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpGet()]
     public async Task<ActionResult<PropertyAccountResponse>> GetPropertyAccount([FromQuery] Guid propertyAccount)
     {
@@ -47,7 +47,7 @@ public class PropertyAccountController : BaseController
 
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<PropertyAccountResponse>>> GetAllPropertyAccount([FromQuery] string iban)
     {
@@ -73,7 +73,7 @@ public class PropertyAccountController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPut("update")]
     public async Task<ActionResult<PropertyAccountResponse>> UpdatePropertyAccount([FromQuery] Guid id, [FromBody] UpdatePropertyAccountRequest request)
     {
@@ -85,7 +85,7 @@ public class PropertyAccountController : BaseController
        );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeletePropertyAccount([FromQuery] Guid id)
     {

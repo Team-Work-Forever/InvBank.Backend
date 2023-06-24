@@ -23,7 +23,7 @@ public class InvestFundController : BaseController
     }
 
     [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
-    [HttpGet()]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<FundResponse>>> GetAllFunds()
     {
         var fundResult = await _fundService.GetAllFunds();
@@ -55,6 +55,18 @@ public class InvestFundController : BaseController
         return fundResult.Match(
             fundResult => Ok(new SimpleResponse(fundResult)),
             firstError => Problem<SimpleResponse>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
+    [HttpGet()]
+    public async Task<ActionResult<FundResponse>> GetFund([FromQuery] Guid fundId)
+    {
+        var fundResult = await _fundService.GetFund(fundId);
+
+        return fundResult.Match(
+            fundResult => Ok(_mapper.Map<FundResponse>(fundResult)),
+            firstError => Problem<FundResponse>(firstError)
         );
     }
 
