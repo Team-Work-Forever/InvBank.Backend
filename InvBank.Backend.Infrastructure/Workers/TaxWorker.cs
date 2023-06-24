@@ -36,7 +36,13 @@ public class TaxWorker : IHostedService
                     {
                         if (IsOneMonthBeenPassed(deposit.InitialDate.ToDateTime(TimeOnly.MaxValue), deposit.Duration))
                         {
-                            deposit.DepositValue *= 1 + (deposit.TaxPercent / 100);
+                            if (decimal.IsNegative(deposit.DepositValue))
+                            {
+                                deposit.DepositValue /= 1 + (deposit.TaxPercent / 100);
+                            } else {
+                                deposit.DepositValue *= 1 + (deposit.TaxPercent / 100);
+                            }
+                            
                             await depositRepository.UpdateDeposit(deposit);
                         }
                     }
@@ -45,7 +51,13 @@ public class TaxWorker : IHostedService
                     {
                         if (IsOneMonthBeenPassed(fund.InitialDate.ToDateTime(TimeOnly.MaxValue), fund.Duration))
                         {
-                            fund.InvestValue *= 1 + (fund.TaxPercent / 100);
+                            if (decimal.IsNegative(fund.TaxPercent))
+                            {
+                                fund.InvestValue /= 1 + (fund.TaxPercent / 100);
+                            } else {
+                                fund.InvestValue *= 1 + (fund.TaxPercent / 100);
+                            }
+                            
                             await fundRepository.UpdateFund(fund);
                         }
                     }
