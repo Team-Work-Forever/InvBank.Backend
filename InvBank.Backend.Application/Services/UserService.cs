@@ -1,6 +1,5 @@
 using ErrorOr;
 using FluentValidation;
-using InvBank.Backend.Application.Common;
 using InvBank.Backend.Application.Common.Interfaces;
 using InvBank.Backend.Application.Common.Providers;
 using InvBank.Backend.Contracts.User;
@@ -11,6 +10,8 @@ namespace InvBank.Backend.Application.Services;
 
 public class UserService : BaseService
 {
+    private readonly IPasswordEncoder _passwordEncoder;
+    private readonly IValidator<UpdateUserByRoleRequest> _validatorUpdateUser;
     private readonly IDateFormatter _dateFormatter;
     private readonly IValidator<CreateUserByRoleRequest> _validator;
     private readonly IAuthorizationFacade _authorizationFacade;
@@ -20,12 +21,16 @@ public class UserService : BaseService
         IUserRepository userRepository,
         IAuthorizationFacade authorizationFacade,
         IValidator<CreateUserByRoleRequest> validator,
-        IDateFormatter dateFormatter)
+        IDateFormatter dateFormatter,
+        IValidator<UpdateUserByRoleRequest> validatorUpdateUser,
+        IPasswordEncoder passwordEncoder)
     {
         _userRepository = userRepository;
         _authorizationFacade = authorizationFacade;
         _validator = validator;
         _dateFormatter = dateFormatter;
+        _validatorUpdateUser = validatorUpdateUser;
+        _passwordEncoder = passwordEncoder;
     }
 
     public async Task<ErrorOr<Auth>> GetProfile()
@@ -61,10 +66,23 @@ public class UserService : BaseService
             return validationResult.Errors;
         }
 
+        var authUser = await _authorizationFacade.GetAuthenticatedUser();
+
+        if (authUser.IsError)
+        {
+            return authUser.Errors;
+        }
+
+        if (authUser.Value.UserRole < request.UserRole)
+        {
+            return Errors.Auth.GreaterRole;
+        }
+
         var user = new Auth
         {
             Email = request.Email,
-            UserPassword = "assuncao12",
+            UserPassword = _passwordEncoder.Encode(request.Password),
+            UserRole = request.UserRole,
             Profile = new Profile
             {
                 BirthDate = _dateFormatter.ConvertToDateTime(request.BirthDate),
@@ -76,6 +94,8 @@ public class UserService : BaseService
                 PostalCode = request.PostalCode
             }
         };
+
+        await _userRepository.CreateUser(user);
 
         return user;
     }
@@ -98,17 +118,31 @@ public class UserService : BaseService
 
     public async Task<ErrorOr<Auth>> UpdateUser(Guid id, UpdateUserByRoleRequest request)
     {
+        
+        var validationResult = await Validate<UpdateUserByRoleRequest>(_validatorUpdateUser, request);
+
+        if (validationResult.IsError)
+        {
+            return validationResult.Errors;
+        }
+
+        var authUser = await _authorizationFacade.GetAuthenticatedUser();
+
+        if (authUser.IsError)
+        {
+            return authUser.Errors;
+        }
+
+        if (authUser.Value.UserRole < request.UserRole)
+        {
+            return Errors.Auth.GreaterRole;
+        }
 
         Auth? auth = await _userRepository.GetUserAuth(id);
 
         if (auth is null)
         {
             return Errors.Auth.AuthNotFoundById;
-        }
-
-        if (auth.Profile is null)
-        {
-            return Errors.Profile.ProfileNotFound;
         }
 
         auth.Email = request.Email;
@@ -119,6 +153,7 @@ public class UserService : BaseService
         auth.Profile.Cc = request.Cc;
         auth.Profile.PostalCode = request.PostalCode;
         auth.Profile.Phone = request.Phone;
+        auth.UserRole = request.UserRole;
 
         await _userRepository.UpdateAuth(auth);
         return auth;
@@ -130,5 +165,18 @@ public class UserService : BaseService
         IEnumerable<Auth> users = await _userRepository.GetAllUsers();
 
         return users.ToList();
+    }
+
+    public async Task<ErrorOr<Auth>> GetUserById(Guid id)
+    {
+        Auth? auth = await _userRepository.GetUserAuth(id);
+
+        if (auth is null)
+        {
+            return Errors.Auth.AuthNotFoundById;
+        }
+
+        return auth;
+
     }
 }

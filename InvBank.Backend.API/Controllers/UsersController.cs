@@ -34,7 +34,7 @@ public class UsersController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN, Role.USERMANAGER)]
     [HttpGet("clients")]
     public async Task<ActionResult<IEnumerable<ProfileResponse>>> GetAllClients()
     {
@@ -46,7 +46,7 @@ public class UsersController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.ADMIN)]
+    [AuthorizeRole(Role.ADMIN, Role.USERMANAGER)]
     [HttpPost("create")]
     public async Task<ActionResult<ProfileResponse>> CreateUserByRole([FromBody] CreateUserByRoleRequest request)
     {
@@ -58,8 +58,20 @@ public class UsersController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.ADMIN)]
+    [AuthorizeRole(Role.ADMIN, Role.USERMANAGER)]
     [HttpGet()]
+    public async Task<ActionResult<ProfileResponse>> GetUserById([FromQuery] Guid id)
+    {
+        var profileResponse = await _userService.GetUserById(id);
+
+        return profileResponse.Match(
+            profileResponse => Ok(_mapper.Map<ProfileResponse>(profileResponse)),
+            firstError => Problem<ProfileResponse>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.ADMIN, Role.USERMANAGER)]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<ProfileResponse>>> GetAllWorkingUsers()
     {
         var profileResponse = await _userService.GetAllWorkingUsers();
@@ -70,9 +82,9 @@ public class UsersController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.ADMIN)]
+    [AuthorizeRole(Role.ADMIN, Role.USERMANAGER)]
     [HttpPut("update")]
-    public async Task<ActionResult<ProfileResponse>> UpdateUser([FromQuery] Guid id, [FromQuery] UpdateUserByRoleRequest request)
+    public async Task<ActionResult<ProfileResponse>> UpdateUser([FromQuery] Guid id, [FromBody] UpdateUserByRoleRequest request)
     {
         var profileResponse = await _userService.UpdateUser(id, request);
 
@@ -82,7 +94,7 @@ public class UsersController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.ADMIN)]
+    [AuthorizeRole(Role.ADMIN, Role.USERMANAGER)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeleteUser([FromQuery] Guid id)
     {

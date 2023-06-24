@@ -7,8 +7,12 @@ public static partial class Errors
     public static class Auth
     {
         public static Error DuplicatedEmail => Error.Conflict(
-            "Auth.DuplicatedEmail",
-            "Este email já se encontra em uso");
+                "Auth.DuplicatedEmail",
+                "Este email já se encontra em uso");
+
+        public static Error GreaterRole => Error.Conflict(
+                "Auth.GreaterRole",
+                "Não podes definir um nível de utilizador maior que o teu");
 
         public static Error AuthNotFoundById => Error.Conflict(
                 "Auth.AuthNotFoundById",
