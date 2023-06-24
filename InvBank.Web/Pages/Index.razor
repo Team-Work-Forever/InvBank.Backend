@@ -1,0 +1,37 @@
+@page "/"
+@inject NavigationManager navigationManager
+@inject AuthenticationStateProvider authProvider
+@attribute [Authorize()]
+
+@code {
+
+    protected override async Task OnInitializedAsync() 
+    {
+        var authUser = await authProvider.GetAuthenticationStateAsync();
+        var role = authUser.User.Claims.Where(claim => claim.Type == "role").FirstOrDefault();
+
+        if (role is null)
+        {
+            navigationManager.NavigateTo("/Identity/Account/Logout");
+            return;   
+        }
+
+        switch (int.Parse(role.Value)) 
+        {
+            case 0:
+                navigationManager.NavigateTo("/account");
+                break;
+            case 1:
+                navigationManager.NavigateTo("/dashboard");
+                break;
+            case 2:
+                navigationManager.NavigateTo("/admin");
+                break;
+            default:
+                navigationManager.NavigateTo("/Identity/Account/Logout");   
+                break;
+        }
+
+    }
+
+}

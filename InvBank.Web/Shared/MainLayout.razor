@@ -1,0 +1,69 @@
+﻿@using InvBank.Web.Helper
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inherits LayoutComponentBase
+
+<div class="page">
+  <div class="sidebar">
+    <AuthorizeView>
+        <Authorized>
+            <div style="display: flex; flex-direction: row; align-items: center; height: 100%; text-align: center; padding: 10px 20px; gap: 12px;">
+                <p>
+                    Email: @Email Nível de Acesso: @Role 
+                </p>
+                <button 
+                    type="submit"
+                    class="btn btn-primary"
+                    @onclick="Refresh">
+                    Sair
+                </button>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+        </NotAuthorized>
+    </AuthorizeView>
+  </div>
+
+  <main>
+    <article class="content px-4">@Body</article>
+  </main>
+</div>
+
+@code {
+
+    public string Email { get; set; } = string.Empty;
+    public Role Role { get; set; }
+
+    public async Task Refresh() 
+    {
+        await ((AuthenticationProvider)AuthenticationStateProvider).LogOut();
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authUser = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var emailClaim = authUser.User.FindFirst(x => x.Type == "email");
+
+        if (emailClaim is null)
+        {
+            await Refresh();
+            return;
+        }
+
+        Email = emailClaim.Value;
+
+        var roleClaim = authUser.User.FindFirst(x => x.Type == "role");
+
+        if (roleClaim is null)
+        {
+            await Refresh();
+            return;
+        }
+
+        Role = (Role)int.Parse(roleClaim.Value);
+
+    }
+
+}

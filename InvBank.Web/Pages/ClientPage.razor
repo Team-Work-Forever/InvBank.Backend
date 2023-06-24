@@ -1,0 +1,113 @@
+@page "/account"
+@using InvBank.Web.Contracts.Account
+@using InvBank.Web.Contracts.Bank
+@inject BankEndPoint bankEndPoint
+@inject AccountEndPoint accountEndPoint
+@inject NavigationManager navigationManager
+@attribute [Authorize()]
+
+<PageTitle>Contas</PageTitle>
+
+<h1>Gerir Contas</h1>
+
+<table class="table table.sprited table-bordered table-hover">
+  <thead>
+	<th>Iban</th>
+	<th>Nome do Banco</th>
+	<th></th>
+  </thead>
+  <tbody>
+		@if (UserAccounts.Count() > 0)
+		{ @foreach (var user in UserAccounts)
+			{
+			<tr>
+			  <td @onclick="() => GoToAccount(user.iban)">@user.iban @user.AmountValue u.m.</td>
+			  <td>@user.Bank</td>
+			  <td>
+				<button class="btn btn-primary" @onclick="UpdateAccount">
+				  <i class="bi bi-pencil"></i>
+				</button>
+				<button class="btn btn-danger" @onclick="() => DeleteAccount(user.iban)">
+				  <i class="bi bi-trash3-fill"></i>
+				</button>
+			  </td>
+			</tr>
+			} }
+		else
+		{
+		<tr>
+		  <td colspan="3" align="center">Nenhuma conta registada!</td>
+		</tr>
+		}
+  </tbody>
+</table>
+<div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+   	Criar Conta
+  </button>
+  <ul class="dropdown-menu">
+	@foreach (var bank in Banks)
+	{
+		<li><a @onclick="() => CreateAccount(bank.Iban)" class="dropdown-item" href="#">@bank.Iban</a></li>
+	}
+  </ul>
+</div>
+
+@code {
+
+	protected List<AccountResponse> UserAccounts = new();
+	protected List<BankResponse> Banks = new();
+		
+	protected override async Task OnInitializedAsync()
+	{
+		var resultAccounts = await accountEndPoint.GetAllAccount();
+
+		if (resultAccounts.IsError)
+		{
+			return;
+		}
+
+		UserAccounts = resultAccounts.Value.ToList();
+		
+		var resultBanks = await bankEndPoint.GetAllBanks();
+
+		if (resultBanks.IsError)
+		{
+			return;
+		}
+
+		Banks = resultBanks.Value.ToList();
+
+	}
+
+	protected async void CreateAccount(string iban) 
+	{ 
+
+		var result = await accountEndPoint.CreateAccount(new CreateAccountRequest
+		{
+			BankIban = iban
+		});
+
+		if (!result.IsError)
+		{
+			navigationManager.NavigateTo("/", true);
+		}
+
+	}
+
+	protected void GoToAccount(string iban) { navigationManager.NavigateTo($"/account/{iban}"); }
+	protected void UpdateAccount() { navigationManager.NavigateTo("/accounts"); }
+	protected async void DeleteAccount(string iban) 
+	{ 
+		var result = await accountEndPoint.DeleteAccount(iban);
+
+		if (result.IsError)
+		{
+			return;
+		}
+
+		navigationManager.NavigateTo("/", true);
+
+	}
+
+} 

@@ -1,0 +1,112 @@
+@using InvBank.Web.Contracts.Account;
+@using InvBank.Web.Contracts.PropertyAccount;
+@inject InvBank.Web.Helper.EndPoints.PropertyAccountEndPoint PropertyAccountEndPoint
+@inject InvBank.Web.Helper.EndPoints.AccountEndPoint AccountEndPoint
+@inject NavigationManager NavigationManager
+@page "/details/property/{PropertyId}"
+
+<Modal @ref="Modal" />
+
+<p>Informação da Conta</p>
+
+<p>
+    IBAN: @Account.iban <br>
+    Valor Corrente: @Account.AmountValue u.m.<br>
+    Banco: @Account.Bank <br>
+</p>
+
+<p>Informações do Deposito</p>
+
+<p>
+    Designação: @Property.Designation<br>
+    Data de Criação: @Property.InitialDate<br>
+    Duração: @Property.Duration meses<br>
+    Taxa de Juros: @Property.TaxPercent %<br>
+    Valor da Renda: @Property.RentValue u.m.<br>
+    Valor por Mês: @Property.MonthValue %<br>
+    Valor da Propriedade: @Property.PropertyValue %<br>
+    Lucro: @Profit<br>
+</p> 
+<div style="margin: 20px;" class="btn-group" role="group" aria-label="Basic example">
+     <button 
+        @onclick="GoBack"
+        type="submit"
+        class="btn btn-warning">
+        Voltar
+    </button>
+</div>
+
+@code {
+
+    public int action = 0;
+
+    [Parameter]
+    public string PropertyId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Redirect { get; set; } = string.Empty;
+    public decimal Profit { get; set; }
+
+    public decimal Amount { get; set; }
+    public AccountResponse Account { get; set; } = new();
+    public PropertyAccountResponse Property { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+    public bool MakeDeposit { get; set; }
+
+    protected void OpenDeposit(int action) 
+    {
+        MakeDeposit = !MakeDeposit;
+        this.action = action;
+    }
+
+    protected void GoBack() 
+    {
+        NavigationManager.NavigateTo($"/{Redirect}");
+    }
+
+    protected async Task FetchData() 
+    {
+         var depositResult = await PropertyAccountEndPoint.GetPropertyAccount(Guid.Parse(PropertyId));
+   
+        if (depositResult.IsError)
+        {
+            GoBack();
+        }
+
+        Property.Id = depositResult.Value.Id;
+        Property.Designation = depositResult.Value.Designation;
+        Property.Duration = depositResult.Value.Duration;
+        Property.InitialDate = depositResult.Value.InitialDate;
+        Property.TaxPercent = depositResult.Value.TaxPercent;
+        Property.RentValue = depositResult.Value.RentValue;
+        Property.MonthValue = depositResult.Value.MonthValue;
+        Property.YearlyValue = depositResult.Value.YearlyValue;
+        Property.Account = depositResult.Value.Account;
+
+        var profitResult = await PropertyAccountEndPoint.GetProfit(Property.Id);
+
+        if (profitResult.IsError)
+        {
+            GoBack();
+        }
+
+        Profit = profitResult.Value.Profit;
+
+        var accountResult = await AccountEndPoint.GetAccount(Property.Account);
+   
+        if (accountResult.IsError)
+        {
+            GoBack();
+        }
+
+        Account = accountResult.Value;
+        
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchData();
+    }
+
+}
+

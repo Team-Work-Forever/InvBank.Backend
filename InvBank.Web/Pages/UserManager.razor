@@ -1,0 +1,343 @@
+@page "/dashboard"
+
+@using Helper.FilterActives;
+@using Contracts.Account;
+@inject NavigationManager NavigationManager;
+@inject Helper.EndPoints.AccountEndPoint AccountEndPoint;
+@attribute [Authorize()]
+
+<PageTitle>Gestor de Ativos (Investe Aqui)</PageTitle>
+
+<h1>Contas</h1>
+
+<div style="display: flex; flex-direction: row; gap: 12px; width: 100%;">
+    <InputText style="width: 25%;" @bind-Value=BindSearch @oninput=OnInputChanged placeholder="Procure por ativos (nome ou min(valor))" />
+    <div class="dropdown">
+        <InputSelect @bind-Value=ActiveType class="form-select">
+            <option value="0">Deposito a Praso</option>
+            <option value="1">ímoveis</option>
+            <option value="2">Fundo de Investimento</option>
+        </InputSelect>
+    </div>
+</div>
+
+<div style="margin: 20px;" class="btn-group" role="group" aria-label="Basic example">
+    <button 
+        @onclick="() => ManageUsers()"
+        type="submit"
+        class="btn btn-warning">
+        Gerir Utilizadores
+    </button>
+    <button 
+        @onclick="() => CreateInvestmentFund()"
+        type="submit"
+        class="btn btn-warning">
+        Registar Fundo de Investimento
+    </button>
+</div>
+
+<Modal @ref="Modal" />
+
+@{ int i = 0; }
+@foreach (var account in ResultsAccounts)
+{
+<div class="accordions" style="margin-top: 20px">
+    <div class="accordion" id="actives">
+        <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+            <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#@i"
+                aria-expanded="false"
+                aria-controls="@i"
+            >
+            @account.iban
+            </button>
+        </h2>
+        <div
+            id="@i"
+            class="accordion-collapse collapse"
+            data-bs-parent="#actives"
+        >
+            <div class="row">
+            </div>
+                <div class="accordion-body">
+
+                    <p>
+                        Informaçãoes: <br>
+                        IBAN: @account.iban <br>
+                        BANK: @account.Bank <br>
+                        VALOR DEPOSITADO: @account.AmountValue u.m<br>
+                        VALOR TOTAL EM DEPOSTIOS A PRASO: @account.DepositResponse.Sum(x => x.Value) u.m. <br>
+                        VALOR TOTAL EM PROPRIEDADES: @account.Properties.Sum(x => x.RentValue) u.m.<br>
+                    </p>
+
+                    <p style="margin-bottom: 5px;">
+                        Ações: <br>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                        <button 
+                            @onclick="() => OpenInsert(0)"
+                            type="submit"
+                            class="btn btn-primary">
+                            Depositar
+                        </button>
+                        </div>
+                    </p>
+
+                    @if (IsOperation)
+                    {
+                        <section style="margin: 20px 0;">
+                            <p>
+                                Valor a @Operation <br>
+                            </p>
+                            <InputNumber @bind-Value="AmountValue"/>
+                            <button @onclick="() => MakeTransfer(account)" class="btn btn-secondary">Finalizar</button>
+                            <button @onclick="() => CloseInsert()" class="btn btn-secondary">Cancelar</button>
+                        </section>
+                    }
+                    <section style="margin: 10px 0;">
+                        <p>Depósitos a Praso</p>
+                        <table class="table table.sprited table-bordered table-hover">
+                            <thead>
+                                <th>Nome</th>
+                                <th>Data inicial</th>
+                                <th>Duração</th>
+                                <th>Taxa</th>
+                                <th>Valor</th>
+                                <th>Taxa Anual</th>
+                            </thead>
+                                @if (account.DepositResponse.Count() > 0)
+                                {
+                                    @foreach (var deposits in account.DepositResponse)
+                                    {
+                                        <tr @onclick="() => SelectDeposit(deposits.Id)">
+                                            <th>@deposits.DepositName</th>
+                                            <th>@deposits.InitialDate</th>
+                                            <th>@deposits.Duration</th>
+                                            <th>@deposits.TaxPercent</th>
+                                            <th>@deposits.Value</th>
+                                            <th>@deposits.YearlyTax</th>
+                                        </tr>
+                                    }
+                                }
+                        </table>
+                    </section>
+                    <section style="margin: 10px 0;">
+                        <p>Ímoveis</p>
+                        <table class="table table.sprited table-bordered table-hover">
+                            <thead>
+                                <th>Designação</th>
+                                <th>Data inicial</th>
+                                <th>Duração</th>
+                                <th>Taxa</th>
+                                <th>Codigo Postal</th>
+                                <th>Renda</th>
+                                <th>Lucro total por Mês</th>
+                                <th>Lucro total por Ano</th>
+                                <th>Ações</th>
+                            </thead>
+                                @if (account.Properties.Count() > 0)
+                                {
+                                    @foreach (var deposits in account.Properties)
+                                    {
+                                        <tr @onclick="() => SelectProperty(deposits.Id)">
+                                            <th>@deposits.Designation</th>
+                                            <th>@deposits.InitialDate</th>
+                                            <th>@deposits.Duration</th>
+                                            <th>@deposits.TaxPercent</th>
+                                            <th>@deposits.PostalCode</th>
+                                            <th>@deposits.RentValue</th>
+                                            <th>@deposits.MonthValue</th>
+                                            <th>@deposits.YearlyValue</th>
+                                            <th>
+                                                <div class="btn-group" role="group" aria-label="Basic example">
+                                                    @* <button 
+                                                        @onclick="() => CreateDeposit(account.iban)"
+                                                        type="submit"
+                                                        class="btn btn-primary">
+                                                        Depositar
+                                                    </button>
+                                                    <button 
+                                                        @onclick="() => RegisterProperty(account.iban)"
+                                                        type="submit" 
+                                                        class="btn btn-primary">
+                                                        Levantar
+                                                    </button> *@
+                                                </div>
+                                            </th>
+                                        </tr>
+                                    }
+                                }
+                        </table>
+                        <div style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 20px">
+                            <div class="btn-group" role="group" aria-label="Basic example">
+                                <button 
+                                    @onclick="() => CreateDeposit(account.iban)"
+                                    type="submit"
+                                    class="btn btn-primary">
+                                    Registar Deposito a Praso
+                                </button>
+                                <button 
+                                    @onclick="() => RegisterProperty(account.iban)"
+                                    type="submit" 
+                                    class="btn btn-primary">
+                                    Registar um ímovel
+                                </button>
+                                <button 
+                                    @onclick="() => SelectInvestmentFunds(account.iban)"
+                                    type="submit"
+                                    class="btn btn-warning">
+                                    Verificar Fundo de Investimento
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+i++;
+}
+
+@code {
+    public string BindSearch { get; set; } = string.Empty;
+    public ActiveType ActiveType { get; set; } = ActiveType.DEPOSIT;
+    public List<AccountResponse> Accounts { get; set; } = new();
+    public List<AccountResponse> ResultsAccounts { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+    public decimal AmountValue { get; set; } = 0;
+    public bool IsOperation { get; set; }
+    public string Operation { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var clientesResponse = await AccountEndPoint.GetAllAccount();
+
+        if (clientesResponse.IsError)
+        {
+            return;
+        }
+
+        Accounts = clientesResponse.Value.ToList();
+        ResultsAccounts = Accounts;
+
+    }
+
+    protected void OpenInsert(int action) 
+    {
+        if (IsOperation)
+        {
+            return;
+        }
+
+        switch (action)
+        {
+            case 0:
+                Operation = "Depositar na conta";
+                break;
+            case 1:
+                Operation = "Levantar do deposito";
+                break;
+            default:
+                break;
+        }
+
+        IsOperation = true;
+    }
+
+    protected void OnInputChanged(ChangeEventArgs args)
+    {
+        var searchResult = args.Value?.ToString();
+        List<AccountResponse> searchList = new();
+            
+        if (searchResult is null)
+        {
+            return;
+        }
+
+        switch (ActiveType)
+        {
+            case ActiveType.DEPOSIT:
+                searchList = new FilterDeposits().filter(Accounts, searchResult).ToList();
+                break;
+            case ActiveType.FUND:
+                searchList = new FilterProperties().filter(Accounts, searchResult).ToList();
+                break;
+            case ActiveType.PROPERTY:
+                searchList = new FilterDeposits().filter(Accounts, searchResult).ToList();
+                break;
+        }
+
+        ResultsAccounts = searchList;
+        StateHasChanged();
+    }
+
+    protected void CloseInsert() 
+    {
+        if (!IsOperation)
+        {
+            return;
+        }
+
+        IsOperation = false;
+    }
+
+    protected async Task MakeTransfer(AccountResponse account) 
+    {
+        var makeTransferResult = await AccountEndPoint.MakeTransfer(account.iban, new MakeTransferRequest { 
+            AmountValue = AmountValue
+        });
+    
+        if (makeTransferResult.IsError)
+        {
+            Modal.Open("Ocorreu um erro ao retirar dinheiro do deposito a praso", makeTransferResult.FirstError.Description);
+            return;
+        }
+
+        Accounts
+            .Where(x => x.iban == account.iban)
+            .Select(x => x.AmountValue += AmountValue);
+
+        CloseInsert();
+        StateHasChanged();
+    }
+
+    protected void ManageUsers() 
+    {
+        NavigationManager.NavigateTo("/admin");
+    }
+
+    protected void CreateInvestmentFund() 
+    {
+        NavigationManager.NavigateTo("/createinvfund/dashboard");
+    }
+
+    protected void SelectInvestmentFunds(string accountIban) 
+    {
+        NavigationManager.NavigateTo($"/funds/{accountIban}");
+    }
+
+    protected void SelectDeposit(Guid depositId) 
+    {
+        NavigationManager.NavigateTo($"/details/deposit/{depositId}");
+    }
+
+    protected void SelectProperty(Guid propertyId) 
+    {
+        NavigationManager.NavigateTo($"/details/property/{propertyId}");
+    }
+
+    protected void CreateDeposit(string accountIban) 
+    {
+        NavigationManager.NavigateTo($"/createdeposit/{accountIban}/dashboard");
+    }
+
+    protected void RegisterProperty(string accountIban) 
+    {
+        NavigationManager.NavigateTo($"/createproperty/{accountIban}/dashboard");
+    }
+
+}

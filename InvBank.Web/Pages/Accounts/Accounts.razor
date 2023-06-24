@@ -1,0 +1,462 @@
+﻿@page "/account/{AccountIban}"
+@using InvBank.Web.Contracts.PropertyAccount
+@using InvBank.Web.Contracts.Deposit
+@using InvBank.Web.Contracts.Account
+@using InvBank.Web.Contracts.Fund
+@inject AccountEndPoint AccountEndPoint;
+@inject FundEndPoint fundEndPoint
+@inject DepositEndPoint depositEndPoint
+@inject PropertyAccountEndPoint propertyAccountEndPoint
+@inject NavigationManager navigationManager
+@inject IJSRuntime jsRuntime
+@attribute [Authorize()]
+
+<PageTitle>Menu Inicial</PageTitle>
+<Modal @ref="Modal"/>
+
+<h1>Bem-vindo à sua conta!</h1>
+
+<div style="display: flex; flex-direction: row; gap: 12px; width: 100%;">
+    <InputText style="width: 25%;" @bind-Value=BindSearch @oninput=OnInputChanged placeholder="Procure por ativos (nome ou min(valor))" />
+    <div class="dropdown">
+        <InputSelect @bind-Value=ActiveType class="form-select">
+            <option value="0">Deposito a Praso</option>
+            <option value="1">ímoveis</option>
+            <option value="2">Fundo de Investimento</option>
+        </InputSelect>
+    </div>
+</div>
+
+<section style="margin: 20px 0;">
+    <p>
+        IBAN: @if (Account.iban is not null) { @Account.iban } <br>
+        Banco: @Account.Bank <br>
+        Valor Depositado: @Account.AmountValue <br>
+        Valor a Praso: @if(Account.DepositResponse is not null) { @Account.DepositResponse.Sum(x => x.Value) }
+    </p>
+    <div style="display: flex; flex-direction: row; gap: 12px;">
+        <button @onclick="InvestInFund" class="btn btn-secondary">Investir na Bolsa</button>
+        @if (!IsMakingTransfer)
+        {
+            <button @onclick="OpenMakeTransfer" class="btn btn-secondary">Fazer Transferência</button>
+        }
+    </div>
+</section>
+
+@if (IsMakingTransfer)
+{
+    <section style="margin: 20px 0;">
+        <p>Valor a Depositar na Conta</p>
+        <InputNumber @bind-Value="Amount"/>
+        <button @onclick="MakeTransfer" class="btn btn-secondary">Finalizar</button>
+        <button @onclick="OpenMakeTransfer" class="btn btn-secondary">Cancelar</button>
+    </section>
+}
+
+<div class="accordions" style="margin: 20px 0;">
+  <h2>Meus Ativo</h2>
+
+  <div class="accordion" id="actives">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingOne">
+        <button
+          class="accordion-button"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseOne"
+          aria-expanded="false"
+          aria-controls="collapseOne"
+        >
+          Depósitos a prazo
+        </button>
+      </h2>
+      <div
+        id="collapseOne"
+        class="accordion-collapse collapse"
+        data-bs-parent="#actives"
+      >
+        <div class="accordion-body">
+          @if (DepositAccounts is null)
+          {
+              <p><em>Não existem depósitos a prazo!</em></p>
+          }
+          else
+          {
+              <table class="table table.sprited table-bordered table-hover">
+                <thead>
+                  <th>Nome</th>
+                  <th>Data inicial</th>
+                  <th>Duração</th>
+                  <th>Taxa</th>
+                  <th>Valor</th>
+                  <th>Taxa Anual</th>
+                  <th>Iban da Conta</th>
+                  <th></th>
+                </thead>
+                <tbody>
+                @if (DepositAccounts.Count() > 0)
+                {
+                  @foreach (var active in DepositAccounts)
+                  {
+                            <tr @onclick="() => GoToDeposit(active.Id)">
+                            <td>@active.DepositName</td>
+                            <td>@active.InitialDate</td>
+                            <td>@active.Duration</td>
+                            <td>@active.TaxPercent</td>
+                            <td>@active.Value</td>
+                            <td>@active.YearlyTax</td>
+                            <td>@active.Account</td>
+                            <td><a href="@($"deposit/{active.Id}")" class="btn btn-primary"><i class="bi bi-pencil"></i></a>
+                            <button class="btn btn-danger" @onclick="() => DeleteDepositActive(active.Id)"><i class="bi bi-trash3-fill"></i></button></td>
+                          </tr>
+                  }
+                    }
+                    else
+                    {
+                        <tr><td colspan="8" align="center">Nenhum ativo registado!</td></tr>
+                    }
+                </tbody>
+              </table>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingTwo">
+        <button
+          class="accordion-button"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseTwo"
+          aria-expanded="false"
+          aria-controls="collapseTwo"
+        >
+          Fundos de investimento
+        </button>
+      </h2>
+      <div
+        id="collapseTwo"
+        class="accordion-collapse collapse"
+        data-bs-parent="#actives"
+      >
+        <div class="accordion-body">
+          @if (DepositAccounts is null)
+          {
+              <p><em>Não existem fundos de investimento!</em></p>
+          }
+          else
+          {
+              <table class="table table.sprited table-bordered table-hover">
+                <thead>
+                  <th>Nome</th>
+                  <th>Data inicial</th>
+                  <th>Duração</th>
+                  <th>Taxa</th>
+                  <th>Valor</th>
+                  <th>Iban da Conta</th>
+                  <th></th>
+                </thead>
+                <tbody>
+                @if (InvFundAccounts.Count() > 0)
+                {
+                  @foreach (var active in InvFundAccounts)
+                  {
+                          <tr @onclick="() => GoToFund(active.Id)">
+                            <td>@active.Name</td>
+                            <td>@active.InitialDate</td>
+                            <td>@active.Duration</td>
+                            <td>@active.TaxPercent</td>
+                            <td>@active.Value</td>
+                            <td>@AccountIban</td>
+                            <td><a href="@($"invfund/{active.Id}")" class="btn btn-primary"><i class="bi bi-pencil"></i></a>
+                            <button class="btn btn-danger" @onclick="() => DeleteInvFundActive(active.Id)"><i class="bi bi-trash3-fill"></i></button></td>
+                          </tr>
+                  }
+                }
+                else
+                {
+                      <tr><td colspan="8" align="center">Nenhum ativo registado!</td></tr>
+                }
+
+                </tbody>
+              </table>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="headingThree">
+        <button
+          class="accordion-button"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#collapseThree"
+          aria-expanded="false"
+          aria-controls="collapseThree"
+        >
+          Imóveis arrendados
+        </button>
+      </h2>
+      <div
+        id="collapseThree"
+        class="accordion-collapse collapse"
+        data-bs-parent="#actives"
+      >
+        <div class="accordion-body">
+          @if (DepositAccounts is null)
+          {
+            <p><em>Não existem imóveis arrendados!</em></p>
+          }
+          else
+          {
+            <table class="table table.sprited table-bordered table-hover">
+              <thead>
+                <th>Data inicial</th>
+                <th>Duração</th>
+                <th>Taxa</th>
+                <th>Designação</th>
+                <th>Código Postal</th>
+                <th>Valor Propriedade</th>
+                <th>Valor Renda</th>
+                <th>Valor por mês</th>
+                <th>Valor por ano</th>
+                <th>Iban da Conta</th>
+                <th></th>
+                <th></th>
+              </thead>
+              <tbody>
+                @if(PropertyAccounts.Count() > 0) {
+                  @foreach (var active in PropertyAccounts)
+                  {
+                    <tr>
+                      <td>@active.InitialDate</td>
+                      <td>@active.Duration</td>
+                      <td>@active.TaxPercent</td>
+                      <td>@active.Designation</td>
+                      <td>@active.PostalCode</td>
+                      <td>@active.PropertyValue</td>
+                      <td>@active.RentValue</td>
+                      <td>@active.MonthValue</td>
+                      <td>@active.YearlyValue</td>
+                      <td>@active.Account</td>
+						@if (active.PropertyValue > 0)
+						{
+							<td><button class="btn btn-warning" @onclick="() => PayProperty(active.Id, active.PropertyValue)">Pagar</button></td>	
+						} else {
+							 <td><button class="btn btn-info" @onclick='async () => await jsRuntime.InvokeAsync<string>("alert", "O imóvel já está pago")'>Pago</button></td>
+						}
+                      <td><a href="@($"property/{active.Id}")" class="btn btn-primary"><i class="bi bi-pencil"></i></a>
+                      <button class="btn btn-danger" @onclick="() => DeletePropertyActive(active.Id)"><i class="bi bi-trash3-fill"></i></button></td>
+                    </tr>
+                  }
+                } else {
+                  <tr><td colspan="11" align="center">Nenhum ativo registado!</td></tr>
+                }
+
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<button @onclick="@GenerateProfitReport" class="m-8 btn btn-warning">Gerar Relatório de Lucro Mensal</button>
+<button @onclick="@GeneratePayReport" class="m-8 btn btn-warning" >Gerar Relatórios de Pagamentos</button>
+
+@code {
+
+    [Parameter]
+    public string AccountIban { get; set; } = string.Empty;
+    public AccountResponse Account { get; set; } = new();
+    public List<DepositResponse> DepositAccounts { get; set; } = new();
+    public List<PropertyAccountResponse> PropertyAccounts { get; set; } = new();
+    public List<FundResponse> InvFundAccounts { get; set; } = new();
+    public Modal Modal { get; set; } = null!;
+    public decimal Amount { get; set; } = 0;
+    public bool IsMakingTransfer { get; set; }
+    public string BindSearch { get; set; } = string.Empty;
+    public ActiveType ActiveType { get; set; } = ActiveType.DEPOSIT;
+    public List<AccountResponse> ResultsAccounts { get; set; } = new();
+
+    private async Task FetchData() 
+    {
+        var accountResult = await AccountEndPoint.GetAccount(AccountIban);
+
+        if (accountResult.IsError)
+        {   
+            return;
+        }
+
+        Account = accountResult.Value;
+        DepositAccounts = Account.DepositResponse.ToList();
+        PropertyAccounts = Account.Properties.ToList();
+
+        var fundResult = await fundEndPoint.GetInvestFundOfAccount(AccountIban);
+
+        if (fundResult.IsError)
+        {	
+            return;
+        }
+
+        InvFundAccounts = fundResult.Value.ToList();
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await FetchData();
+    }
+
+    protected void GoToFund(Guid fundId) 
+    {
+        navigationManager.NavigateTo($"/details/fund/{fundId}/{AccountIban}");
+    }
+
+    protected void InvestInFund()
+    {
+        navigationManager.NavigateTo($"/funds/{AccountIban}");
+    }
+
+    protected void OnInputChanged(ChangeEventArgs args)
+    {
+        var searchResult = args.Value?.ToString();
+        List<AccountResponse> searchList = new();
+            
+        if (searchResult is null)
+        {
+            return;
+        }
+
+        //switch (ActiveType)
+        //{
+        //    case ActiveType.DEPOSIT:
+        //        searchList = new FilterDeposits().filter(Accounts, searchResult).ToList();
+        //        break;
+        //    case ActiveType.FUND:
+        //        searchList = new FilterProperties().filter(Accounts, searchResult).ToList();
+        //        break;
+        //    case ActiveType.PROPERTY:
+        //        searchList = new FilterDeposits().filter(Accounts, searchResult).ToList();
+        //        break;
+        //}
+
+        ResultsAccounts = searchList;
+        StateHasChanged();
+    }
+
+    protected void OpenMakeTransfer() 
+    {
+        IsMakingTransfer = !IsMakingTransfer;
+    }
+
+    protected async Task MakeTransfer() 
+    {
+
+        var result = await AccountEndPoint.MakeTransfer(AccountIban, new MakeTransferRequest { AmountValue = Amount });
+
+        if (result.IsError)
+        {
+            Modal.Open("Falha na Transferência", result.FirstError.Description);
+        }
+
+        OpenMakeTransfer();
+        Amount = 0;
+        await FetchData();
+
+    }
+
+    protected void GenerateProfitReport() 
+    {
+      navigationManager.NavigateTo($"/report/profit/{AccountIban}");
+    }
+    
+    protected void GeneratePayReport() 
+    {
+      navigationManager.NavigateTo($"/report/pay/{AccountIban}");
+    }
+
+    protected void CreateDepositActive()
+    {
+        navigationManager.NavigateTo($"/createdeposit/{AccountIban}");
+    }
+
+    protected async void  DeleteDepositActive(Guid id)
+    {
+        var result = await depositEndPoint.DeleteDeposit(id);
+
+        if (result.IsError)
+        {
+            return;
+        }
+
+        var depositId = DepositAccounts.FirstOrDefault(da => da.Id == id);
+
+        if (depositId is not null)
+        {
+            DepositAccounts.Remove(depositId);
+        }
+    }
+
+    protected async void PayDeposit(Guid id, decimal amount) 
+    {
+		var result = await depositEndPoint.PayDeposit(new PayDepositRequest {
+			DepositId = id,
+			Amount = amount
+		});
+
+		if (result.IsError)
+		{
+			navigationManager.NavigateTo($"/account/{AccountIban}", true);
+		}
+    }
+
+    protected async void PayProperty(Guid id, decimal amount)
+    {
+		var result = await propertyAccountEndPoint.PayProperty(new PayPropertyRequest {
+			PropertyId = id,
+			Amount = amount
+		});
+
+		if (result.IsError)
+		{
+			navigationManager.NavigateTo($"/account/{AccountIban}", true);
+		}
+    }
+
+    protected void GoToDeposit(Guid id) 
+    {
+        navigationManager.NavigateTo($"/details/deposit/{id}");
+    } 
+
+    protected void CreateInvFundActive()
+    {
+        navigationManager.NavigateTo($"/createinvfund/{AccountIban}");
+    }
+
+    protected void DeleteInvFundActive(Guid id)
+    {
+    }
+
+    protected void CreatePropertyActive()
+    {
+        navigationManager.NavigateTo($"/createproperty/{AccountIban}");
+    }
+
+    protected async void DeletePropertyActive(Guid id)
+    {
+        var result = await propertyAccountEndPoint.DeletePropertyAccount(id);
+    
+        if (result.IsError)
+		{
+			return;
+		}
+
+		var propertyId = PropertyAccounts.FirstOrDefault(da => da.Id == id);
+
+		if (propertyId is not null)
+		{
+			PropertyAccounts.Remove(propertyId);
+		}
+    }
+
+}

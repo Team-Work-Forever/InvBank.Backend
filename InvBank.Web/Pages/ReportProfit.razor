@@ -1,0 +1,73 @@
+@page "/report/profit/{AccountIban}"
+@using InvBank.Web.Contracts.Report
+@inject ReportEndPoint reportEndPoint
+
+ <h1>Generation Report</h1>
+
+<InputDate id=initialDate @bind-Value=InitialDate ></InputDate>
+<InputDate id=endDate @bind-Value=EndDate></InputDate>
+<button @onclick="GetData" class="btn btn-primary">Confirmar</button>    
+
+@if (ProfitReport is not null)
+{
+    <h1>Ativos de Deposito</h1>
+
+    <div class="mt-6">
+        <p>Lucro total antes dos impostos</p>
+        <p>@ProfitReport.BeforeProfitDeposit</p>
+    </div>
+
+   <div class="mt-6">
+        <p>Lucro total antes depois dos impostos</p>
+        <p>@ProfitReport.AfterProfitDeposit</p>
+   </div>
+
+    <h1>Ativos de Propriedade</h1>
+
+    <div class="mt-6">
+        <p>Lucro total antes dos impostos</p>
+        <p>@ProfitReport.BeforeProfitProperty</p>
+    </div>
+    <div class="mt-6">
+        <p>Lucro total antes depois dos impostos</p>
+        <p>@ProfitReport.AfterProfitProperty</p>
+    </div>
+
+    <div class="mt-6">
+        <p>Lucro mensal médio</p>
+        <p>@ProfitReport.ProfitMean</p>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public string AccountIban { get; set; } = null!;
+
+    public DateTime InitialDate { get; set; } = DateTime.Now; 
+    public DateTime EndDate { get; set; } = DateTime.Now.AddDays(30); 
+
+    public ProfitReportResponse ProfitReport { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {   
+        await GetData();
+    }
+
+    protected async Task GetData() {
+        var result = await reportEndPoint.GenerateReportProfit(new GenerateProfitReportRequest 
+        {
+            InitialDate = DateOnly.FromDateTime(InitialDate).ToString("dd/MM/yyyy"),
+            EndDate = DateOnly.FromDateTime(EndDate).ToString("dd/MM/yyyy")
+        });
+
+        if (result.IsError)
+        {
+            return;
+        }
+
+        ProfitReport = result.Value;
+    }
+
+}
+

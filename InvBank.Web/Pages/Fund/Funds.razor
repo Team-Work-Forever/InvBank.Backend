@@ -1,0 +1,59 @@
+@page "/funds/{AccountIban}"
+@using Contracts.Fund
+@inject NavigationManager NavigationManager
+@inject Helper.EndPoints.FundEndPoint FundEndPoint
+
+<table class="table table.sprited table-bordered table-hover">
+    <thead>
+        <th>Nome</th>
+        <th>Data inicial</th>
+        <th>Duração</th>
+        <th>Taxa</th>
+        <th>Valor</th>
+    </thead>
+        @if (FundsInv.Count() > 0)
+        {
+            @foreach (var fund in FundsInv)
+            {
+                <tr @onclick="() => GoToFund(fund.Id)">
+                    <th>@fund.Name</th>
+                    <th>@fund.InitialDate</th>
+                    <th>@fund.Duration</th>
+                    <th>@fund.TaxPercent</th>
+                    <th>@fund.Value</th>
+                </tr>
+            }
+        } else {
+            <p>Não existe nenhum fundo para investir</p>
+        }
+</table>
+
+@code {
+
+    [Parameter]
+    public string AccountIban { get; set; } = string.Empty;
+    public List<FundResponse> FundsInv { get; set; } = new();
+
+    protected void GoToFund(Guid id)
+    {
+        NavigationManager.NavigateTo($"/details/fund/{id}/{AccountIban}");
+    }
+
+    protected async Task FetchData()
+    {
+        var fundsResult = await FundEndPoint.GetAllFunds();
+
+        if (fundsResult.IsError)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+
+        FundsInv = fundsResult.Value.ToList();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchData();
+    }
+
+}
