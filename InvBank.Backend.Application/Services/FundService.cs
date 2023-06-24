@@ -264,4 +264,42 @@ public class FundService : BaseService
             findFund.Value.InvestValue;
 
     }
+
+    public async Task<ErrorOr<IEnumerable<PaymentInvestFund>>> GetTaxes(Guid id)
+    {
+        var findFund = await GetFund(id);
+
+        if (findFund.IsError)
+        {
+            return findFund.Errors;
+        }
+
+        return (await _fundRepository.GetTaxes()).ToList();
+
+    }
+
+    public async Task<ErrorOr<string>> PayTax(Guid id, string IBAN, PayTaxRequest request)
+    {
+        var findFund = await GetFund(id);
+
+        if (findFund.IsError)
+        {
+            return findFund.Errors;
+        }
+
+        var findAccount = await GetAccount(IBAN);
+
+        if (findAccount.IsError)
+        {
+            return findAccount.Errors;
+        }
+
+        if (findAccount.Value.AmountValue < request.Amount)
+        {
+            return Errors.Account.CannotRaiseMore;
+        }
+
+        await _fundRepository.PayTax(findFund.Value, request.Amount);
+        return "Este imposto foi pago";
+    }
 }

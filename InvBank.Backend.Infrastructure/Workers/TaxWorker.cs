@@ -53,7 +53,7 @@ public class TaxWorker : IHostedService
                         {
                             if (decimal.IsNegative(fund.TaxPercent))
                             {
-                                fund.InvestValue /= 1 + (fund.TaxPercent / 100);
+                                await fundRepository.MakeTax(fund, fund.InvestValue / (fund.TaxPercent / 100));
                             } else {
                                 fund.InvestValue *= 1 + (fund.TaxPercent / 100);
                             }

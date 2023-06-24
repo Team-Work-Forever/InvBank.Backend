@@ -81,4 +81,46 @@ public class FundRepository : IFundRepository
         _dbContext.ActivesInvestmentFunds.Add(investmentFund);
         return await _dbContext.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<PaymentInvestFund>> GetPayedTaxes()
+    {
+        return await _dbContext
+            .PaymentInvestFunds
+            .Where(x => x.PaymentDate != null)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<PaymentInvestFund>> GetTaxes() 
+    {
+        return await _dbContext
+            .PaymentInvestFunds
+            .Where(x => x.PaymentDate == null)
+            .ToListAsync();              
+    }
+
+    public async Task MakeTax(ActivesInvestmentFund fund, decimal amount)
+    {
+        _dbContext
+            .PaymentInvestFunds
+            .Add(new PaymentInvestFund{
+                Amount = amount,
+                Ative = fund
+            });
+
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task PayTax(ActivesInvestmentFund fund, decimal amount)
+    {
+        var payFund = await _dbContext
+            .PaymentInvestFunds
+            .Where(x => x.Id == fund.Id)
+            .FirstAsync();
+
+        payFund.PaymentDate = DateOnly.FromDateTime(DateTime.Now);
+        _dbContext.Update<PaymentInvestFund>(payFund);
+
+        await _dbContext.SaveChangesAsync();
+    }
+
 }

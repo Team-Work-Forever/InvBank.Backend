@@ -23,6 +23,30 @@ public class InvestFundController : BaseController
     }
 
     [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
+    [HttpGet("get/taxes")]
+    public async Task<ActionResult<IEnumerable<ProfitValueResponse>>> GetTaxes([FromQuery] Guid id)
+    {
+        var fundResult = await _fundService.GetTaxes(id);
+
+        return fundResult.Match(
+            fundResult => Ok(_mapper.Map<IEnumerable<ProfitValueResponse>>(fundResult)),
+            firstError => Problem<IEnumerable<ProfitValueResponse>>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
+    [HttpGet("pay/taxes")]
+    public async Task<ActionResult<SimpleResponse>> PayTax([FromQuery] Guid id, [FromQuery] string iban, [FromBody] PayTaxRequest request)
+    {
+        var fundResult = await _fundService.PayTax(id, iban, request);
+
+        return fundResult.Match(
+            fundResult => Ok(new SimpleResponse(fundResult)),
+            firstError => Problem<SimpleResponse>(firstError)
+        );
+    }
+
+    [AuthorizeRole(Role.CLIENT ,Role.USERMANAGER, Role.ADMIN)]
     [HttpGet("profit")]
     public async Task<ActionResult<ProfitValueResponse>> GetProfit([FromQuery] Guid id)
     {
