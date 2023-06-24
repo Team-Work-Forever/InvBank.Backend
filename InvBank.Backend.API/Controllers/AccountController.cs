@@ -22,7 +22,7 @@ public class AccountController : BaseController
         _mapper = mapper;
     }
 
-    [AuthorizeRole(Role.CLIENT)]
+    [AuthorizeRole(Role.CLIENT, Role.ADMIN)]
     [HttpPost("create")]
     public async Task<ActionResult<AccountResponse>> CreateAccount(CreateAccountRequest request)
     {
@@ -46,7 +46,7 @@ public class AccountController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpGet("")]
     public async Task<ActionResult<AccountResponse>> GetAccount([FromQuery] string iban)
     {
@@ -59,7 +59,7 @@ public class AccountController : BaseController
 
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpGet("all")]
     public async Task<ActionResult<string>> GetAllAccounts()
     {
@@ -72,7 +72,7 @@ public class AccountController : BaseController
 
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeleteAccount([FromQuery] string iban)
     {

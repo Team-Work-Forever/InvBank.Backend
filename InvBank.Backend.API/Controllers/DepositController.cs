@@ -5,7 +5,6 @@ using InvBank.Backend.Contracts;
 using InvBank.Backend.Contracts.Deposit;
 using InvBank.Backend.Contracts.Payment;
 using InvBank.Backend.Infrastructure.Authentication;
-using InvBank.Backend.Infrastructure.Providers;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,7 +28,7 @@ public class DepositController : BaseController
         _mapper = mapper;
     }
 
-    [AuthorizeRole(Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPost("create")]
     public async Task<ActionResult<SimpleResponse>> RegisterDepositAccount([FromBody] CreateDepositRequest request)
     {
@@ -80,7 +79,7 @@ public class DepositController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpGet()]
     public async Task<ActionResult<DepositResponse>> GetDeposit([FromQuery] string depositId)
     {
@@ -92,7 +91,7 @@ public class DepositController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER)]
+    [AuthorizeRole(Role.CLIENT, Role.USERMANAGER, Role.ADMIN)]
     [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<DepositResponse>>> GetAllDeposits([FromQuery] string accountIban)
     {
@@ -104,7 +103,7 @@ public class DepositController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpPut("update")]
     public async Task<ActionResult<SimpleResponse>> UpdateDeposit([FromQuery] string depositIban, [FromBody] UpdateDepositRequest request)
     {
@@ -116,7 +115,7 @@ public class DepositController : BaseController
         );
     }
 
-    [AuthorizeRole(Role.USERMANAGER)]
+    [AuthorizeRole(Role.USERMANAGER, Role.ADMIN)]
     [HttpDelete("delete")]
     public async Task<ActionResult<SimpleResponse>> DeleteDeposit([FromQuery] string depositIban)
     {
